@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>jimmbot_base</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>mhRobotics jimmBOT base package</description>
 
   <author email="m.halimi@gmail.com">Mergim Halimi</author>
