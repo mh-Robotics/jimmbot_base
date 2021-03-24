@@ -43,11 +43,28 @@ namespace jimmbot_controller
       HilWheelCommander();
       void esp32NodeCallback(const sensor_msgs::JointState::ConstPtr& state);
 
+      bool negativeBit(const double &speed) const;
+      uint8_t regulateSpeedToUInt8(const double &speed) const;
+      double linearToAngular(const double &speed) const;
+      double angularToLinear(const double &speed) const;
+
+      inline const double getWheelDiameter(void) const
+      {
+        return this->_wheel_diameter;
+      }
+
+      inline const double getMaxSpeed(void) const
+      {
+        return this->_max_speed;
+      }
+
     private:
       ros::NodeHandle node_;
 
       ros::Publisher esp32_can_pub_;
       ros::Subscriber esp32_can_sub_;
+      const double _wheel_diameter = {0.1651};
+      const double _max_speed = {2.5};
   };
 }//end namespace jimmbot_controller
 #endif//end ___JIMMBOT_HIL_WHEEL_COMMANDER___

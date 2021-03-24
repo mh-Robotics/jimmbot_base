@@ -179,7 +179,7 @@ namespace jimmbot_base
       jimmbot_msgs::canFrame _status_frame;
       double _speed;
       uint8_t _command;
-      double _max_speed{2.5};
+      double _max_speed{2.0};
   };
 
   class Command 
