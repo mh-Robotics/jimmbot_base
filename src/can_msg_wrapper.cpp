@@ -44,14 +44,24 @@ namespace jimmbot_base
     this->_status_frame = status_frame;
   }
 
-  bool CanMsgWrapper::negativeBit(double speed)
+  bool CanMsgWrapper::negativeBit(const double &speed) const
   {
-    return std::round(speed) < 0 ? true : false;
+    return speed < 0 ? true : false;
+  }
+
+  double CanMsgWrapper::linearToAngular(const double &speed) const
+  {
+    return speed / this->getWheelDiameter() * 2;
+  }
+
+  double CanMsgWrapper::angularToLinear(const double &speed) const
+  {
+    return speed * this->getWheelDiameter() / 2;
   }
 
   uint8_t CanMsgWrapper::regulateSpeedToUInt8(double speed)
   {
-    return negativeBit(std::round(speed)) ? std::round(speed * -UINT8_MAX / this->_max_speed) : std::round(speed * UINT8_MAX / this->_max_speed);
+    return (std::abs(this->angularToLinear(speed)) * UINT8_MAX / this->getMaxSpeed());
   }
 
   double CanMsgWrapper::regulateSpeedToDouble(uint8_t first_byte, uint8_t second_byte)

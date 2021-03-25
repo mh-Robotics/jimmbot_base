@@ -147,13 +147,13 @@ add_dependencies(${PROJECT_NAME}_jimmbot_hardware_interface ${${PROJECT_NAME}_EX
 add_dependencies(${PROJECT_NAME}_wheel_commander_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_wheel_commander_node
-  ${catkin_LIBRARIES}
-)
-
 target_link_libraries(${PROJECT_NAME}_jimmbot_hardware_interface
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}_can_msg_wrapper
+)
+
+target_link_libraries(${PROJECT_NAME}_wheel_commander_node
+  ${catkin_LIBRARIES}
 )
 
 #############

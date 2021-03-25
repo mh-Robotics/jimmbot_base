@@ -137,7 +137,43 @@ namespace jimmbot_base
        * @return true 
        * @return false 
        */
-      bool negativeBit(double speed);
+      bool negativeBit(const double &speed) const;
+
+      /**
+       * @brief 
+       * 
+       * @param speed 
+       * @return double 
+       */
+      double linearToAngular(const double &speed) const;
+
+      /**
+       * @brief 
+       * 
+       * @param speed 
+       * @return double 
+       */
+      double angularToLinear(const double &speed) const;
+
+      /**
+       * @brief Get the Wheel Diameter object
+       * 
+       * @return const double 
+       */
+      inline const double getWheelDiameter(void) const
+      {
+        return this->_wheel_diameter;
+      }
+
+      /**
+       * @brief Get the Max Speed object
+       * 
+       * @return const double 
+       */
+      inline const double getMaxSpeed(void) const
+      {
+        return this->_max_speed;
+      }
 
       /**
        * @brief 
@@ -179,7 +215,8 @@ namespace jimmbot_base
       jimmbot_msgs::canFrame _status_frame;
       double _speed;
       uint8_t _command;
-      double _max_speed{2.0};
+      const double _wheel_diameter = {0.1651};
+      const double _max_speed = {2.5};
   };
 
   class Command 

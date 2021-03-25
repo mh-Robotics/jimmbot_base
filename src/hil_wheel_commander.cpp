@@ -12,17 +12,12 @@ namespace jimmbot_controller
 
   bool HilWheelCommander::negativeBit(const double &speed) const
   {
-    return std::round(speed) < 0 ? true : false;
+    return speed < 0 ? true : false;
   }
 
   uint8_t HilWheelCommander::regulateSpeedToUInt8(const double &speed) const
   {
-    if(speed >= -1 && speed <= 1)
-    {
-      return 0;
-    }
-
-    return negativeBit(std::round(speed)) ? std::round(this->angularToLinear(speed) * -UINT8_MAX / this->getMaxSpeed()) : std::round(this->angularToLinear(speed) * UINT8_MAX / this->getMaxSpeed());
+    return (std::abs(this->angularToLinear(speed)) * UINT8_MAX / this->getMaxSpeed());
   }
 
   double HilWheelCommander::linearToAngular(const double &speed) const

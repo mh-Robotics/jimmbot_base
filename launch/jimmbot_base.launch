@@ -2,7 +2,7 @@
 <!-- 
 MIT License
 
-@file      base.launch
+@file      jimmbot_base.launch
 @author    Mergim Halimi (m.halimi123@gmail.com)
 @copyright Copyright (c) 2020, mhRobotics, Inc., All rights reserved.
 
@@ -26,13 +26,8 @@ SOFTWARE.
  -->
 <launch>
 
-    <node name="serial_node" pkg="rosserial_python" type="serial_node.py" respawn="true">
-      <param name="port" value="/dev/ttyUSB0"/>
-      <param name="baud" value="115200" />
-    </node>
+  <node pkg="jimmbot_base" type="jimmbot_base_jimmbot_hardware_interface" name="jimmbot_base_node"/>
 
-    <node pkg="jimmbot_base" type="jimmbot_base_jimmbot_hardware_interface" name="jimmbot_base_node"/>
-
-    <include file="$(find jimmbot_controller)/launch/controller.launch" />
+  <include file="$(find jimmbot_controller)/launch/controller.launch" />
 
 </launch>
