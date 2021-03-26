@@ -113,7 +113,7 @@ namespace jimmbot_base
     jimmbot_msgs::canFrameArray _data_frame_array;
 
     _data_frame_array.header.stamp = ros::Time::now();
-    _data_frame_array.header.frame_id = "can_speed_updater";
+    _data_frame_array.header.frame_id = "/jimmbot/hw/cmd";
 
     _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)] = this->_front_left.getSpeedInCan();
     _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)] = this->_front_right.getSpeedInCan();

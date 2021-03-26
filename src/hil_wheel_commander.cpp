@@ -35,22 +35,16 @@ namespace jimmbot_controller
     jimmbot_msgs::canFrameArray _data_frame_array;
 
     _data_frame_array.header.stamp = ros::Time::now();
-    _data_frame_array.header.frame_id = "HilWheelCommander";
+    _data_frame_array.header.frame_id = "/jimmbot/hw/hil/cmd";
 
     for(int index = 0; index < CAN_MSG_COUNT; index++)
     {
-      _data_frame_array.can_frames[index].header.stamp = ros::Time::now();
-      _data_frame_array.can_frames[index].header.seq = _data_frame_array.header.seq;
-      _data_frame_array.can_frames[index].header.frame_id = "HilWheelCommander";
       _data_frame_array.can_frames[index].data = {0, 0, 0, 0, 0, 0, negativeBit(state->velocity[index]), regulateSpeedToUInt8(state->velocity[index])};
       _data_frame_array.can_frames[index].id = index;
       _data_frame_array.can_frames[index].dlc = 8;
     }
 
     {
-      _data_frame_array.can_frames[CAN_MSG_COUNT].header.stamp = ros::Time::now();
-      _data_frame_array.can_frames[CAN_MSG_COUNT].header.seq = _data_frame_array.header.seq;
-      _data_frame_array.can_frames[CAN_MSG_COUNT].header.frame_id = "HilWheelCommander";
       _data_frame_array.can_frames[CAN_MSG_COUNT].data = {0, 0, 0, 1, 0, 0, 0, 1};
       _data_frame_array.can_frames[CAN_MSG_COUNT].id = LIGHT_MSG_ID;
       _data_frame_array.can_frames[CAN_MSG_COUNT].dlc = 8;
