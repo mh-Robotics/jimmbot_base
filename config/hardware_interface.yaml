@@ -1,0 +1,10 @@
+hardware_interface:
+  control_frequency: 10.0
+  max_wheel_speed: 2.5
+  command_frame_id: "/jimmbot/hw/cmd"
+
+  #Wheel joints. Update accordingly with URDF and diff_drive_controller
+  left_wheel_front: "wheel_axis_front_left_to_wheel_front_left"
+  left_wheel_back: "wheel_axis_back_left_to_wheel_back_left"
+  right_wheel_front: "wheel_axis_front_right_to_wheel_front_right"
+  right_wheel_back: "wheel_axis_back_right_to_wheel_back_right"

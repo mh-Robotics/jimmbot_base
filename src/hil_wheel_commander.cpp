@@ -7,6 +7,7 @@ namespace jimmbot_controller
   HilWheelCommander::HilWheelCommander()
   {
     esp32_can_sub_ = node_.subscribe<sensor_msgs::JointState> (SUBSCRIBER_COMMAND_TOPIC, 1, &HilWheelCommander::esp32NodeCallback, this);
+    extn_data_sub_ = node_.subscribe<jimmbot_msgs::extn_data> (SUBSCRIBER_EXTN_DATA_TOPIC, 1, &HilWheelCommander::extnDataMsgCallback, this);
     esp32_can_pub_ = node_.advertise<jimmbot_msgs::canFrameArray> (PUBLISHER_COMMAND_TOPIC_CAN_MSG_ARRAY, 1, false);
   }
 
@@ -39,18 +40,23 @@ namespace jimmbot_controller
 
     for(int index = 0; index < CAN_MSG_COUNT; index++)
     {
-      _data_frame_array.can_frames[index].data = {0, 0, 0, 0, 0, 0, negativeBit(state->velocity[index]), regulateSpeedToUInt8(state->velocity[index])};
+      _data_frame_array.can_frames[index].data = {0, 0, 0, 0, 0, 0, negativeBit(state->velocity[index + 2]), regulateSpeedToUInt8(state->velocity[index + 2])};
       _data_frame_array.can_frames[index].id = index;
       _data_frame_array.can_frames[index].dlc = 8;
     }
 
     {
-      _data_frame_array.can_frames[CAN_MSG_COUNT].data = {0, 0, 0, 1, 0, 0, 0, 1};
+      _data_frame_array.can_frames[CAN_MSG_COUNT].data = {0, 0, 0, this->lights_.first, 0, 0, 0, this->lights_.second};
       _data_frame_array.can_frames[CAN_MSG_COUNT].id = LIGHT_MSG_ID;
       _data_frame_array.can_frames[CAN_MSG_COUNT].dlc = 8;
     }
 
     esp32_can_pub_.publish(_data_frame_array);
+  }
+
+  void HilWheelCommander::extnDataMsgCallback(const jimmbot_msgs::extn_data::ConstPtr &extn_data_msg)
+  {
+    this->lights_ = {extn_data_msg->left_light_bulb, extn_data_msg->right_light_bulb};
   }
 }//end namespace jimmbot_controller
 

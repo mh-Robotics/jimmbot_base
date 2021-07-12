@@ -74,6 +74,13 @@ namespace jimmbot_base
       FEEDBACK_WHEEL_BACK_RIGHT,
     };
 
+    enum class LightsId : uint8_t 
+    { 
+      ENABLE_LIGHT_LEFT_MSG_INDEX = 3,
+      ENABLE_LIGHT_RIGHT_MSG_INDEX = 7,
+      LIGHT_CAN_MSG_INDEX = 4,
+    };
+
     public:
       /**
        * @brief Construct a new Can Msg Wrapper object
@@ -121,6 +128,14 @@ namespace jimmbot_base
        * @return status_t 
        */
       status_t getStatus(void);
+
+      /**
+       * @brief Get the Lights In Can object
+       * 
+       * @param lights 
+       * @return jimmbot_msgs::canFrame 
+       */
+      static jimmbot_msgs::canFrame getLightsInCan(const std::pair<bool, bool> &lights);
 
       /**
        * @brief 
@@ -216,7 +231,7 @@ namespace jimmbot_base
       double _speed;
       uint8_t _command;
       const double _wheel_diameter = {0.1651};
-      const double _max_speed = {2.5};
+      const double _max_speed = {4.0};
   };
 
   class Command 

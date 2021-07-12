@@ -39,6 +39,17 @@ namespace jimmbot_base
     return _local;
   }
 
+  jimmbot_msgs::canFrame CanMsgWrapper::getLightsInCan(const std::pair<bool, bool> &lights)
+  {
+    jimmbot_msgs::canFrame _local;
+    _local.id = static_cast<int>(0x31);
+    _local.dlc = 0x8;
+    _local.data[static_cast<int>(CanMsgWrapper::LightsId::ENABLE_LIGHT_LEFT_MSG_INDEX)] = lights.first;
+    _local.data[static_cast<int>(CanMsgWrapper::LightsId::ENABLE_LIGHT_RIGHT_MSG_INDEX)] = lights.second;
+
+    return _local;
+  }
+
   void CanMsgWrapper::updateStatusFrame(jimmbot_msgs::canFrame status_frame)
   {
     this->_status_frame = status_frame;
