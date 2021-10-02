@@ -13,7 +13,8 @@ namespace jimmbot_controller
 
   bool HilWheelCommander::negativeBit(const double &speed) const
   {
-    return speed < 0 ? true : false;
+    //@todo check here. Fix the firmware to have the reverse logic here. For testing, this is OK.
+    return speed < 0 ? false : true;
   }
 
   uint8_t HilWheelCommander::regulateSpeedToUInt8(const double &speed) const

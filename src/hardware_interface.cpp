@@ -5,48 +5,54 @@
 
 namespace jimmbot_base
 {
-  JimmBotHardwareInterface::JimmBotHardwareInterface(ros::NodeHandle* nh, ros::NodeHandle* nh_param)
+  JimmBotHardwareInterface::JimmBotHardwareInterface(ros::NodeHandle* nh, ros::NodeHandle* nh_param) 
+    : lights_(false, false)
+    , camera_angles_(HardwareInterfaceConstants::ZERO_DOUBLE, HardwareInterfaceConstants::ZERO_DOUBLE)
+    , control_frequency_(HardwareInterfaceConstants::DEFAULT_CONTROL_FREQUENCY)
+    , max_wheel_speed_(HardwareInterfaceConstants::DEFAULT_MAX_WHEEL_SPEED)
   {
-    if(!nh_param->getParam("control_frequency", this->control_frequency_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::CONTROL_FREQUENCY, this->control_frequency_))
     {
-      nh_param->param<double>("control_frequency", this->control_frequency_, 10.0);
+      nh_param->param<double>(HardwareInterfaceConstants::CONTROL_FREQUENCY, this->control_frequency_, HardwareInterfaceConstants::DEFAULT_CONTROL_FREQUENCY);
     }
 
-    if(!nh_param->getParam("max_wheel_speed", this->control_frequency_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::MAX_WHEEL_SPEED, this->max_wheel_speed_))
     {
-      nh_param->param<double>("max_wheel_speed", this->control_frequency_, 2.5);
+      nh_param->param<double>(HardwareInterfaceConstants::MAX_WHEEL_SPEED, this->max_wheel_speed_, HardwareInterfaceConstants::DEFAULT_MAX_WHEEL_SPEED);
     }
 
-    if(!nh_param->getParam("command_frame_id", this->frame_id_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::COMMAND_FRAME_ID, this->frame_id_))
     {
-      nh_param->param<std::string>("command_frame_id", this->frame_id_, "/jimmbot/hw/cmd");
+      nh_param->param<std::string>(HardwareInterfaceConstants::COMMAND_FRAME_ID, this->frame_id_, HardwareInterfaceConstants::DEFAULT_COMMAND_FRAME_ID);
     }
 
-    if(!nh_param->getParam("left_wheel_front", this->left_wheel_front_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::LEFT_WHEEL_FRONT, this->left_wheel_front_))
     {
-      nh_param->param<std::string>("left_wheel_front", this->left_wheel_front_, "wheel_axis_front_left_to_wheel_front_left");
+      nh_param->param<std::string>(HardwareInterfaceConstants::LEFT_WHEEL_FRONT, this->left_wheel_front_, HardwareInterfaceConstants::DEFAULT_LEFT_WHEEL_FRONT);
     }
 
-    if(!nh_param->getParam("left_wheel_back", this->left_wheel_back_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::LEFT_WHEEL_BACK, this->left_wheel_back_))
     {
-      nh_param->param<std::string>("left_wheel_back", this->left_wheel_back_, "wheel_axis_back_left_to_wheel_back_left");
+      nh_param->param<std::string>(HardwareInterfaceConstants::LEFT_WHEEL_BACK, this->left_wheel_back_, HardwareInterfaceConstants::DEFAULT_LEFT_WHEEL_BACK);
     }
 
-    if(!nh_param->getParam("right_wheel_front", this->right_wheel_front_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::RIGHT_WHEEL_FRONT, this->right_wheel_front_))
     {
-      nh_param->param<std::string>("right_wheel_front", this->right_wheel_front_, "wheel_axis_front_right_to_wheel_front_right");
+      nh_param->param<std::string>(HardwareInterfaceConstants::RIGHT_WHEEL_FRONT, this->right_wheel_front_, HardwareInterfaceConstants::DEFAULT_RIGHT_WHEEL_FRONT);
     }
 
-    if(!nh_param->getParam("right_wheel_back", this->right_wheel_back_))
+    if(!nh_param->getParam(HardwareInterfaceConstants::RIGHT_WHEEL_BACK, this->right_wheel_back_))
     {
-      nh_param->param<std::string>("right_wheel_back", this->right_wheel_back_, "wheel_axis_back_right_to_wheel_back_right");
+      nh_param->param<std::string>(HardwareInterfaceConstants::RIGHT_WHEEL_BACK, this->right_wheel_back_, HardwareInterfaceConstants::DEFAULT_RIGHT_WHEEL_BACK);
     }
 
     this->registerControlInterfaces();
 
-    this->esp32_can_sub_ = nh_.subscribe<jimmbot_msgs::canFrameArray>("feedback/can_msg_array", 1, &JimmBotHardwareInterface::canFeedbackMsgCallback, this);
-    this->extn_data_sub_ = nh_.subscribe<jimmbot_msgs::extn_data>("extn_data", 1, &JimmBotHardwareInterface::extnDataMsgCallback, this);
-    this->esp32_can_pub_ = nh_.advertise<jimmbot_msgs::canFrameArray>("command/can_msg_array", 1, false);
+    this->esp32_can_sub_ = nh_.subscribe<jimmbot_msgs::canFrameArray>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_FEEDBACK_TOPIC, 1, &JimmBotHardwareInterface::canFeedbackMsgCallback, this);
+    this->extn_data_sub_ = nh_.subscribe<jimmbot_msgs::extn_data>(HardwareInterfaceConstants::DEFAULT_EXTENDED_DATA_TOPIC, 1, &JimmBotHardwareInterface::extnDataMsgCallback, this);
+    this->camera_tilt_sub_.first = nh_.subscribe<std_msgs::Float64>(HardwareInterfaceConstants::DEFAULT_CAMERA_TILT_FRONT_TOPIC, 1, &JimmBotHardwareInterface::cameraTiltFrontCallback, this);
+    this->camera_tilt_sub_.second = nh_.subscribe<std_msgs::Float64>(HardwareInterfaceConstants::DEFAULT_CAMERA_TILT_FRONT_TOPIC, 1, &JimmBotHardwareInterface::cameraTiltBackCallback, this);
+    this->esp32_can_pub_ = nh_.advertise<jimmbot_msgs::canFrameArray>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_COMMAND_TOPIC, 1, false);
   }
 
   void JimmBotHardwareInterface::registerControlInterfaces()
@@ -54,7 +60,7 @@ namespace jimmbot_base
     std::set<std::string> joints = {this->left_wheel_front_, this->left_wheel_back_, 
                                     this->right_wheel_front_, this->right_wheel_back_};
 
-    const auto index = getIndex(joints, 0);
+    const auto index = getIndex(joints, HardwareInterfaceConstants::ZERO_INT);
 
     for (auto joint = std::begin(joints); joint != std::end(joints); ++joint)
     {
@@ -87,16 +93,19 @@ namespace jimmbot_base
                            joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)].velocity_command}
     };
 
-    for (auto& speed_cmd : speed_commands)
+    for (auto& speed_command : speed_commands)
     {
-      speed_cmd.execute();
+      speed_command.execute();
     }
 
+    //@todo write to AUX kinect
     this->updateSpeedToHardware();
   }
 
   void JimmBotHardwareInterface::readFromHardware(void)
   {
+    //Status is updated from the feedback callback, then here we read those values and update joint states
+    //@todo check if we need a mutex so we don't read while the callback is updating status frame 
     std::vector<CanMsgWrapperCommand> feedbacks
     {
       CanMsgWrapperCommand{this->front_left_, CanMsgWrapperCommand::Command::MOTOR_STATUS},
@@ -153,9 +162,21 @@ namespace jimmbot_base
     esp32_can_pub_.publish(_data_frame_array);
   }
 
+  void JimmBotHardwareInterface::updateAngleToKinectCameras(void)
+  {
+    std_msgs::Float64 _angle;
+
+    _angle.data = (std::get<HardwareInterfaceConstants::FIRST>(this->camera_angles_) == 
+                   std::get<HardwareInterfaceConstants::SECOND>(this->camera_angles_) ? 
+                   std::get<HardwareInterfaceConstants::FIRST>(this->camera_angles_) : 
+                   std::get<HardwareInterfaceConstants::SECOND>(this->camera_angles_));
+
+    //todo publish angle to topic
+  }
+
   void JimmBotHardwareInterface::canFeedbackMsgCallback(const jimmbot_msgs::canFrameArray::ConstPtr &feedback_msg_array)
   {
-    std::vector<CanMsgWrapperCommand> update_status_frames
+    std::vector<CanMsgWrapperCommand> update_status_frames_commands
     {
       CanMsgWrapperCommand{this->front_left_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE, 
                            feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)]},
@@ -167,15 +188,25 @@ namespace jimmbot_base
                            feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)]}
     };
 
-    for (auto& status_frame : update_status_frames)
+    for (auto& status_frame_command : update_status_frames_commands)
     {
-      status_frame.execute();
+      status_frame_command.execute();
     }
   }
 
   void JimmBotHardwareInterface::extnDataMsgCallback(const jimmbot_msgs::extn_data::ConstPtr &extn_data_msg)
   {
     this->lights_ = {extn_data_msg->left_light_bulb, extn_data_msg->right_light_bulb};
+  }
+
+  void JimmBotHardwareInterface::cameraTiltFrontCallback(const std_msgs::Float64::ConstPtr &angle)
+  {
+    this->camera_angles_.first = angle->data;
+  }
+
+  void JimmBotHardwareInterface::cameraTiltBackCallback(const std_msgs::Float64::ConstPtr &angle)
+  {
+    this->camera_angles_.second = angle->data;
   }
 
   void controlLoopCallback(jimmbot_base::JimmBotHardwareInterface &jimmbot_base,

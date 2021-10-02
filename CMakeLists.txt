@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(jimmbot_base)
 
-add_compile_options(-std=c++14)
+add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -10,6 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   controller_manager
   hardware_interface
 )
+
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules (LIBUSB REQUIRED libusb-1.0)
+include_directories (${LIBUSB_INCLUDE_DIRS})
+link_directories (${LIBUSB_LIBRARY_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -33,18 +39,22 @@ add_dependencies(${PROJECT_NAME}_can_msg_wrapper ${${PROJECT_NAME}_EXPORTED_TARG
 add_executable(${PROJECT_NAME}_hardware_interface src/hardware_interface.cpp)
 add_executable(${PROJECT_NAME}_wheel_commander src/hil_wheel_commander.cpp)
 add_executable(${PROJECT_NAME}_extended_joy src/extended_joy.cpp)
+add_executable(${PROJECT_NAME}_kinect_aux src/kinect_aux.cpp)
 
 set_target_properties(${PROJECT_NAME}_hardware_interface PROPERTIES OUTPUT_NAME hardware_interface PREFIX "")
 set_target_properties(${PROJECT_NAME}_wheel_commander PROPERTIES OUTPUT_NAME wheel_commander PREFIX "")
 set_target_properties(${PROJECT_NAME}_extended_joy PROPERTIES OUTPUT_NAME extended_joy PREFIX "")
+set_target_properties(${PROJECT_NAME}_kinect_aux PROPERTIES OUTPUT_NAME kinect_aux PREFIX "")
 
 add_dependencies(${PROJECT_NAME}_hardware_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_wheel_commander ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_extended_joy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_kinect_aux ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_hardware_interface ${catkin_LIBRARIES} ${PROJECT_NAME}_can_msg_wrapper)
 target_link_libraries(${PROJECT_NAME}_wheel_commander ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_extended_joy ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_kinect_aux usb-1.0 ${catkin_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}_hardware_interface
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
