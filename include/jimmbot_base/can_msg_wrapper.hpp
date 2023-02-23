@@ -19,6 +19,8 @@
 #include <unordered_map>
 #include <cstdint>
 
+#define CAN_MAX_DLEN 8
+
 namespace jimmbot_base
 {
   std::ostream &operator << (std::ostream &os, const jimmbot_msgs::CanFrame::ConstPtr &obj)
@@ -41,11 +43,21 @@ namespace jimmbot_base
   {
     int _id = {0};
     int _command = {0};
-    double _effort = {0};
+    int _effort = {0};
     double _position = {0};
     int _rpm = {0};
-    double _speed = {0};
+    double _velocity = {0};
   }status_t;
+
+  // Define a bit-field struct to represent the compressed motor status data
+typedef struct __attribute__((packed)) {
+    uint32_t can_id : 11;
+    uint32_t command_id : 8;
+    uint32_t effort : 12;
+    uint32_t position : 20;
+    uint32_t rpm : 10;
+    uint32_t velocity : 24;
+} compressed_motor_status_t;
 
   std::ostream &operator << (std::ostream &os, const status_t &obj)
   {
@@ -54,7 +66,7 @@ namespace jimmbot_base
        << ", Effort: " << obj._effort
        << ", Position: " << obj._position
        << ", RPM: " << obj._rpm
-       << ", Speed: " << obj._speed << std::endl;
+       << ", Velocity: " << obj._velocity << std::endl;
 
     return os;
   }
@@ -116,15 +128,6 @@ namespace jimmbot_base
       /**
        * @brief Get the Status object
        * 
-       *  data[0] = static_cast<uint8_t>(CanWrapper::Command::MOTOR_STATUS);
-       *  data[1] = static_cast<uint8_t>(this->_wheel_controller.getWheelEffort()); //real number, divide by 10, 25 = 2.5
-       *  data[2] = static_cast<uint8_t>(this->_wheel_controller.getWheelPosition()); //25.5 truncated to 25
-       *  data[3] = static_cast<uint8_t>(this->_wheel_controller.getWheelPosition() - data[3] * 10); //25.5 - 20 = 0.5 * 10 = 5
-       *  data[4] = static_cast<uint8_t>(this->_wheel_controller.getWheelRpm() / 10); //455 / 10 = 45.5 truncated to 45 
-       *  data[5] = static_cast<uint8_t>(this->_wheel_controller.getWheelRpm() - data[4]); //45.5 - 45 = 0.5 * 10 = 5
-       *  data[6] = static_cast<uint8_t>(this->_wheel_controller.getWheelVelocity()); //2.5 truncated to 2
-       *  data[7] = static_cast<uint8_t>((this->_wheel_controller.getWheelVelocity() - data[6]) * 10); //2.5 - 2 = 0.5 * 10 = 5
-       * 
        * @return status_t 
        */
       status_t getStatus(void);
@@ -144,7 +147,13 @@ namespace jimmbot_base
        */
       void updateStatusFrame(jimmbot_msgs::CanFrame status_frame);
 
-    public:
+    private:
+      // Pack a motor status struct into a compressed CAN frame
+      jimmbot_msgs::CanFrame PackCompressedMotorStatus(const status_t& motorStatus);
+
+      // Unpack a motor status struct from a compressed CAN frame
+      status_t UnpackCompressedMotorStatus(const jimmbot_msgs::CanFrame& canFrame);
+
       /**
        * @brief 
        * 

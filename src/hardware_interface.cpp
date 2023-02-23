@@ -129,13 +129,21 @@ namespace jimmbot_base
       joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)].position = this->front_right_.getStatus()._position;
       joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_LEFT)].position = this->back_left_.getStatus()._position;
       joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)].position = this->back_right_.getStatus()._position;
+
+      // @todo(mhalimi): For debug purposes, printout the status 
+      // ROS_WARN_NAMED("hardware_interface", "Id: %#x", this->front_left_.getStatus()._id);
+      // ROS_WARN_NAMED("hardware_interface", "Command: %d", this->front_left_.getStatus()._command);
+      // ROS_WARN_NAMED("hardware_interface", "Effort: %d", this->front_left_.getStatus()._effort);
+      // ROS_WARN_NAMED("hardware_interface", "Position: %.2f", this->front_left_.getStatus()._position);
+      // ROS_WARN_NAMED("hardware_interface", "RPM: %d", this->front_left_.getStatus()._rpm);
+      // ROS_WARN_NAMED("hardware_interface", "Velocity: %.2f", this->front_left_.getStatus()._velocity);
     }
 
     {
-      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)].velocity = this->front_left_.getStatus()._speed;
-      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)].velocity = this->front_right_.getStatus()._speed;
-      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_LEFT)].velocity = this->back_left_.getStatus()._speed;
-      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)].velocity = this->back_right_.getStatus()._speed;
+      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)].velocity = this->front_left_.getStatus()._velocity;
+      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)].velocity = this->front_right_.getStatus()._velocity;
+      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_LEFT)].velocity = this->back_left_.getStatus()._velocity;
+      joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)].velocity = this->back_right_.getStatus()._velocity;
     }
 
     {
