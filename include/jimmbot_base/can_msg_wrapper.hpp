@@ -12,8 +12,8 @@
 #define ___CAN_MSG_WRAPPER___
 
 #include <ros/ros.h>
-#include <jimmbot_msgs/canFrame.h>
-#include <jimmbot_msgs/canFrameArray.h>
+#include <jimmbot_msgs/CanFrame.h> // for jimmbot_msg::CanFrame
+#include <jimmbot_msgs/CanFrameStamped.h> // for jimmbot_msg::CanFrameStamped
 
 #include <string>
 #include <unordered_map>
@@ -21,7 +21,7 @@
 
 namespace jimmbot_base
 {
-  std::ostream &operator << (std::ostream &os, const jimmbot_msgs::canFrame::ConstPtr &obj)
+  std::ostream &operator << (std::ostream &os, const jimmbot_msgs::CanFrame::ConstPtr &obj)
   {
     os << "Id: " << std::hex << "0x" << obj->id << ", Data length: " << std::hex << static_cast<double>(obj->dlc) << std::endl;
 
@@ -109,9 +109,9 @@ namespace jimmbot_base
       /**
        * @brief Get the Speed In Can object
        * 
-       * @return jimmbot_msgs::canFrame 
+       * @return jimmbot_msgs::CanFrame 
        */
-      jimmbot_msgs::canFrame getSpeedInCan(void);
+      jimmbot_msgs::CanFrame getSpeedInCan(void);
 
       /**
        * @brief Get the Status object
@@ -133,18 +133,18 @@ namespace jimmbot_base
        * @brief Get the Lights In Can object
        * 
        * @param lights 
-       * @return jimmbot_msgs::canFrame 
+       * @return jimmbot_msgs::CanFrame 
        */
-      static jimmbot_msgs::canFrame getLightsInCan(const std::pair<bool, bool> &lights);
+      static jimmbot_msgs::CanFrame getLightsInCan(const std::pair<bool, bool> &lights);
 
       /**
        * @brief 
        * 
        * @param status_frame 
        */
-      void updateStatusFrame(jimmbot_msgs::canFrame status_frame);
+      void updateStatusFrame(jimmbot_msgs::CanFrame status_frame);
 
-    private:
+    public:
       /**
        * @brief 
        * 
@@ -227,7 +227,7 @@ namespace jimmbot_base
 
       CanId _rxv_id;
       CanId _txv_id;
-      jimmbot_msgs::canFrame _status_frame;
+      jimmbot_msgs::CanFrame _status_frame;
       double _speed;
       uint8_t _command;
       const double _wheel_diameter = {0.1651};
@@ -257,13 +257,13 @@ namespace jimmbot_base
     CanMsgWrapper& _can_wrapper;
     Command _command;
     double _value;
-    jimmbot_msgs::canFrame _status_frame;
+    jimmbot_msgs::CanFrame _status_frame;
 
     CanMsgWrapperCommand(CanMsgWrapper& can_wrapper, Command command, double value) : _can_wrapper(can_wrapper), 
                                                                                       _command(command),
                                                                                       _value(value) { }
 
-    CanMsgWrapperCommand(CanMsgWrapper& can_wrapper, Command command, jimmbot_msgs::canFrame status_frame) : _can_wrapper(can_wrapper), 
+    CanMsgWrapperCommand(CanMsgWrapper& can_wrapper, Command command, jimmbot_msgs::CanFrame status_frame) : _can_wrapper(can_wrapper), 
                                                                                                              _command(command),
                                                                                                              _status_frame(status_frame) { }
 

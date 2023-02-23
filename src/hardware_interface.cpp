@@ -48,11 +48,11 @@ namespace jimmbot_base
 
     this->registerControlInterfaces();
 
-    this->esp32_can_sub_ = nh_.subscribe<jimmbot_msgs::canFrameArray>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_FEEDBACK_TOPIC, 1, &JimmBotHardwareInterface::canFeedbackMsgCallback, this);
-    this->extn_data_sub_ = nh_.subscribe<jimmbot_msgs::extn_data>(HardwareInterfaceConstants::DEFAULT_EXTENDED_DATA_TOPIC, 1, &JimmBotHardwareInterface::extnDataMsgCallback, this);
+    this->esp32_can_sub_ = nh_.subscribe<jimmbot_msgs::CanFrameStamped>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_FEEDBACK_TOPIC, 1, &JimmBotHardwareInterface::canFeedbackMsgCallback, this);
+    this->extn_data_sub_ = nh_.subscribe<jimmbot_msgs::ExtnDataStamped>(HardwareInterfaceConstants::DEFAULT_EXTENDED_DATA_TOPIC, 1, &JimmBotHardwareInterface::extnDataMsgCallback, this);
     this->camera_tilt_sub_.first = nh_.subscribe<std_msgs::Float64>(HardwareInterfaceConstants::DEFAULT_CAMERA_TILT_FRONT_TOPIC, 1, &JimmBotHardwareInterface::cameraTiltFrontCallback, this);
-    this->camera_tilt_sub_.second = nh_.subscribe<std_msgs::Float64>(HardwareInterfaceConstants::DEFAULT_CAMERA_TILT_FRONT_TOPIC, 1, &JimmBotHardwareInterface::cameraTiltBackCallback, this);
-    this->esp32_can_pub_ = nh_.advertise<jimmbot_msgs::canFrameArray>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_COMMAND_TOPIC, 1, false);
+    this->camera_tilt_sub_.second = nh_.subscribe<std_msgs::Float64>(HardwareInterfaceConstants::DEFAULT_CAMERA_TILT_BACK_TOPIC, 1, &JimmBotHardwareInterface::cameraTiltBackCallback, this);
+    this->esp32_can_pub_ = nh_.advertise<jimmbot_msgs::CanFrameStamped>(HardwareInterfaceConstants::DEFAULT_CAN_MSG_COMMAND_TOPIC, 1, false);
   }
 
   void JimmBotHardwareInterface::registerControlInterfaces()
@@ -148,18 +148,43 @@ namespace jimmbot_base
 
   void JimmBotHardwareInterface::updateSpeedToHardware(void)
   {
-    jimmbot_msgs::canFrameArray _data_frame_array;
+    jimmbot_msgs::CanFrameStamped _data_frame;
 
-    _data_frame_array.header.stamp = ros::Time::now();
-    _data_frame_array.header.frame_id = this->frame_id_;
+    {
+      _data_frame.header.stamp = ros::Time::now();
+      _data_frame.header.frame_id = this->frame_id_;
+      _data_frame.can_frame = this->front_left_.getSpeedInCan();
+      esp32_can_pub_.publish(_data_frame);
+    }
 
-    _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)] = this->front_left_.getSpeedInCan();
-    _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)] = this->front_right_.getSpeedInCan();
-    _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_LEFT)] = this->back_left_.getSpeedInCan();
-    _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)] = this->back_right_.getSpeedInCan();
-    _data_frame_array.can_frames[static_cast<int>(CanMsgWrapper::LightsId::LIGHT_CAN_MSG_INDEX)] = CanMsgWrapper::getLightsInCan(this->lights_);
+    {
+      _data_frame.header.stamp = ros::Time::now();
+      _data_frame.header.frame_id = this->frame_id_;
+      _data_frame.can_frame = this->front_right_.getSpeedInCan();
+      esp32_can_pub_.publish(_data_frame);
+    }
 
-    esp32_can_pub_.publish(_data_frame_array);
+    {
+      _data_frame.header.stamp = ros::Time::now();
+      _data_frame.header.frame_id = this->frame_id_;
+      _data_frame.can_frame = this->back_left_.getSpeedInCan();
+      esp32_can_pub_.publish(_data_frame);
+    }
+
+    {
+      _data_frame.header.stamp = ros::Time::now();
+      _data_frame.header.frame_id = this->frame_id_;
+      _data_frame.can_frame = this->back_right_.getSpeedInCan();
+      esp32_can_pub_.publish(_data_frame);
+    }
+
+    {
+      _data_frame.header.stamp = ros::Time::now();
+      _data_frame.header.frame_id = this->frame_id_;
+      _data_frame.can_frame = CanMsgWrapper::getLightsInCan(this->lights_);
+      esp32_can_pub_.publish(_data_frame);
+    }
+    
   }
 
   void JimmBotHardwareInterface::updateAngleToKinectCameras(void)
@@ -174,18 +199,19 @@ namespace jimmbot_base
     //todo publish angle to topic
   }
 
-  void JimmBotHardwareInterface::canFeedbackMsgCallback(const jimmbot_msgs::canFrameArray::ConstPtr &feedback_msg_array)
+  void JimmBotHardwareInterface::canFeedbackMsgCallback(const jimmbot_msgs::CanFrameStamped::ConstPtr &feedback_msg)
   {
     std::vector<CanMsgWrapperCommand> update_status_frames_commands
     {
+      //todo: Filter by proper ID
       CanMsgWrapperCommand{this->front_left_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE, 
-                           feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_LEFT)]},
-      CanMsgWrapperCommand{this->front_right_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE, 
-                           feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_FRONT_RIGHT)]},
+                           feedback_msg->can_frame},
+      CanMsgWrapperCommand{this->front_right_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE,
+                           feedback_msg->can_frame},
       CanMsgWrapperCommand{this->back_left_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE, 
-                           feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_LEFT)]},
+                           feedback_msg->can_frame},
       CanMsgWrapperCommand{this->back_right_, CanMsgWrapperCommand::Command::MOTOR_STATUS_UPDATE, 
-                           feedback_msg_array->can_frames[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)]}
+                           feedback_msg->can_frame}
     };
 
     for (auto& status_frame_command : update_status_frames_commands)
@@ -194,9 +220,9 @@ namespace jimmbot_base
     }
   }
 
-  void JimmBotHardwareInterface::extnDataMsgCallback(const jimmbot_msgs::extn_data::ConstPtr &extn_data_msg)
+  void JimmBotHardwareInterface::extnDataMsgCallback(const jimmbot_msgs::ExtnDataStamped::ConstPtr &extn_data_msg)
   {
-    this->lights_ = {extn_data_msg->left_light_bulb, extn_data_msg->right_light_bulb};
+    this->lights_ = {extn_data_msg->extn_data.left_light_bulb, extn_data_msg->extn_data.right_light_bulb};
   }
 
   void JimmBotHardwareInterface::cameraTiltFrontCallback(const std_msgs::Float64::ConstPtr &angle)

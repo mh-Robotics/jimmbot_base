@@ -41,7 +41,7 @@ namespace jimmbot_base
 
     pimpl_->camera_possition_pub_front = nh->advertise<std_msgs::Float64>("camera_tilt_front", 1, true);
     pimpl_->camera_possition_pub_back = nh->advertise<std_msgs::Float64>("camera_tilt_back", 1, true);
-    pimpl_->extn_data_pub_ = nh->advertise<jimmbot_msgs::extn_data>("extn_data", 1, true);
+    pimpl_->extn_data_pub_ = nh->advertise<jimmbot_msgs::ExtnDataStamped>("extn_data", 1, true);
     pimpl_->joy_sub = nh->subscribe<sensor_msgs::Joy>("joy", 1, &TeleopTwistJoyExtended::Impl::joyCallback, pimpl_);
 
     if (nh_param->getParam("axis_linear_tilt", pimpl_->axis_linear_map))
@@ -143,14 +143,14 @@ namespace jimmbot_base
   void TeleopTwistJoyExtended::Impl::sendExtnDataMsg(const sensor_msgs::Joy::ConstPtr& joy_msg,
                                                      const std::string& which_map)
   {
-    jimmbot_msgs::extn_data extn_data_msg;
+    jimmbot_msgs::ExtnDataStamped extn_data_msg;
 
     extn_data_msg.header.frame_id = "/jimmbot/extn_data";
     extn_data_msg.header.stamp = ros::Time::now();
-    extn_data_msg.inverse_movement = returnSwitchStateFromPush(joy_msg->buttons[inverse_movement]);
-    extn_data_msg.left_light_bulb = (joy_msg->axes[left_light_bulb] == -1 ? true : false);
-    extn_data_msg.right_light_bulb = (joy_msg->axes[right_light_bulb] == -1 ? true : false);
-    extn_data_msg.horn = joy_msg->buttons[horn];
+    extn_data_msg.extn_data.inverse_movement = returnSwitchStateFromPush(joy_msg->buttons[inverse_movement]);
+    extn_data_msg.extn_data.left_light_bulb = (joy_msg->axes[left_light_bulb] == -1 ? true : false);
+    extn_data_msg.extn_data.right_light_bulb = (joy_msg->axes[right_light_bulb] == -1 ? true : false);
+    extn_data_msg.extn_data.horn = joy_msg->buttons[horn];
 
     extn_data_pub_.publish(extn_data_msg);
   }

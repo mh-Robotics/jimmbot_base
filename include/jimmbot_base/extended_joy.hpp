@@ -15,7 +15,8 @@
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/Joy.h>
 
-#include <jimmbot_msgs/extn_data.h>
+#include <jimmbot_msgs/ExtnData.h>
+#include <jimmbot_msgs/ExtnDataStamped.h>
 
 #include <map>
 #include <string>

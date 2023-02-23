@@ -14,9 +14,9 @@ namespace jimmbot_base
     return this->_speed;
   }
 
-  jimmbot_msgs::canFrame CanMsgWrapper::getSpeedInCan(void)
+  jimmbot_msgs::CanFrame CanMsgWrapper::getSpeedInCan(void)
   {
-    jimmbot_msgs::canFrame _local;
+    jimmbot_msgs::CanFrame _local;
     _local.id = static_cast<int>(this->_txv_id);
     _local.dlc = 0x8;
     _local.data[0] = this->_command;
@@ -39,9 +39,9 @@ namespace jimmbot_base
     return _local;
   }
 
-  jimmbot_msgs::canFrame CanMsgWrapper::getLightsInCan(const std::pair<bool, bool> &lights)
+  jimmbot_msgs::CanFrame CanMsgWrapper::getLightsInCan(const std::pair<bool, bool> &lights)
   {
-    jimmbot_msgs::canFrame _local;
+    jimmbot_msgs::CanFrame _local;
     _local.id = static_cast<int>(0x31);
     _local.dlc = 0x8;
     _local.data[static_cast<int>(CanMsgWrapper::LightsId::ENABLE_LIGHT_LEFT_MSG_INDEX)] = lights.first;
@@ -50,7 +50,7 @@ namespace jimmbot_base
     return _local;
   }
 
-  void CanMsgWrapper::updateStatusFrame(jimmbot_msgs::canFrame status_frame)
+  void CanMsgWrapper::updateStatusFrame(jimmbot_msgs::CanFrame status_frame)
   {
     this->_status_frame = status_frame;
   }

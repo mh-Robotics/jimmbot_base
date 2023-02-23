@@ -18,7 +18,8 @@
 #include <utility>
 #include <set>
 
-#include <jimmbot_msgs/extn_data.h>
+#include <jimmbot_msgs/ExtnDataStamped.h> // for jimmbot_msgs::ExtnDataStamped
+#include <jimmbot_msgs/CanFrameStamped.h> // for jimmbot_msgs::CanFrameStamped
 
 #include "can_msg_wrapper.hpp"
 
@@ -171,14 +172,14 @@ namespace jimmbot_base
      * 
      * @param feedback_msg_array 
      */
-    void canFeedbackMsgCallback(const jimmbot_msgs::canFrameArray::ConstPtr &feedback_msg_array);
+    void canFeedbackMsgCallback(const jimmbot_msgs::CanFrameStamped::ConstPtr &feedback_msg_array);
 
     /**
      * @brief 
      * 
      * @param extn_data_msg 
      */
-    void extnDataMsgCallback(const jimmbot_msgs::extn_data::ConstPtr &extn_data_msg);
+    void extnDataMsgCallback(const jimmbot_msgs::ExtnDataStamped::ConstPtr &extn_data_msg);
 
     /**
      * @brief 
