@@ -2,8 +2,8 @@
  * @file can_packt.h
  * @author Mergim Halimi (m.halimi123@gmail.com)
  * @brief A class for packing and unpacking compressed CAN messages.
- * @version 0.1
- * @date 2021-10-09
+ * @version 0.2
+ * @date 2023-03-01
  *
  * @copyright Copyright (c) 2020-2023, mhRobotics, Inc. All rights reserved.
  * @license This project is released under the BSD 3-Clause License
@@ -33,7 +33,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
  */
 #include <jimmbot_msgs/CanFrame.h>  // for jimmbot_msg::CanFrame
 
@@ -43,11 +42,11 @@
 #define CAN_MAX_DLEN 8
 
 typedef struct WheelStatus {
-  int _command = {0};
-  int _effort = {0};
-  double _position = {0};
-  int _rpm = {0};
-  double _velocity = {0};
+  int command_id = {0};
+  int effort = {0};
+  double position = {0};
+  int rpm = {0};
+  double velocity = {0};
 } wheel_status_t;
 
 /**
@@ -77,6 +76,20 @@ class CanPackt {
       : transmit_id_(transmit_id), receive_id_(receive_id){};
 
   /**
+   * @brief Returns the transmit ID value.
+   *
+   * @return The transmit ID value.
+   */
+  inline uint8_t TransmitId() { return transmit_id_; };
+
+  /**
+   * @brief Returns the receive ID value.
+   *
+   * @return The receive ID value.
+   */
+  inline uint8_t ReceiveId() { return receive_id_; };
+
+  /**
    * @brief Packs a compressed wheel status data structure into a CAN frame
    *
    * @tparam inType the input data type (must be a wheel_status_t)
@@ -85,7 +98,7 @@ class CanPackt {
    * @return the packed CAN frame
    */
   template <typename inType, typename outType>
-  outType PackCompressed(const inType &data) {
+  outType PackCompressed(const inType& data) {
     static_assert(sizeof(inType) <= CAN_MAX_DLEN,
                   "Struct is larger than CAN message data field size");
 
@@ -108,7 +121,7 @@ class CanPackt {
    * @return the unpacked wheel status data structure
    */
   template <typename inType, typename outType>
-  outType UnpackCompressed(const inType &can_frame) {
+  outType UnpackCompressed(const inType& can_frame) {
     static_assert(sizeof(outType) <= CAN_MAX_DLEN,
                   "Struct is larger than CAN message data field size");
 
@@ -135,20 +148,20 @@ class CanPackt {
 template <>
 inline jimmbot_msgs::CanFrame
 CanPackt::PackCompressed<wheel_status_t, jimmbot_msgs::CanFrame>(
-    const wheel_status_t &wheel_status) {
+    const wheel_status_t& wheel_status) {
   jimmbot_msgs::CanFrame canFrame;
   canFrame.id = transmit_id_;
   canFrame.dlc = CAN_MAX_DLEN;
 
   // Compress the motor status data into a bit-field struct
   compressed_wheel_status_t compressed_status;
-  compressed_status.command_id = wheel_status._command;
-  compressed_status.effort = wheel_status._effort & 0xFFF;
+  compressed_status.command_id = wheel_status.command_id;
+  compressed_status.effort = wheel_status.effort & 0xFFF;
   compressed_status.position =
-      static_cast<int32_t>(wheel_status._position * 100);
-  compressed_status.rpm = wheel_status._rpm & 0x3FF;
+      static_cast<int32_t>(wheel_status.position * 100);
+  compressed_status.rpm = wheel_status.rpm & 0x3FF;
   compressed_status.velocity =
-      static_cast<int32_t>(wheel_status._velocity * 100);
+      static_cast<int32_t>(wheel_status.velocity * 100);
 
   // Copy the compressed data into the CAN frame
   ::memcpy(canFrame.data.c_array(), &compressed_status,
@@ -169,7 +182,7 @@ CanPackt::PackCompressed<wheel_status_t, jimmbot_msgs::CanFrame>(
 template <>
 inline wheel_status_t
 CanPackt::UnpackCompressed<jimmbot_msgs::CanFrame, wheel_status_t>(
-    const jimmbot_msgs::CanFrame &can_frame) {
+    const jimmbot_msgs::CanFrame& can_frame) {
   wheel_status_t wheel_status;
 
   // Extract the compressed data from the CAN frame
@@ -178,13 +191,11 @@ CanPackt::UnpackCompressed<jimmbot_msgs::CanFrame, wheel_status_t>(
            sizeof(compressed_wheel_status_t));
 
   // Unpack the compressed data into the motor status struct
-  wheel_status._command = compressed_status.command_id;
-  wheel_status._effort = compressed_status.effort;
-  wheel_status._position =
-      static_cast<double>(compressed_status.position) / 100;
-  wheel_status._rpm = compressed_status.rpm;
-  wheel_status._velocity =
-      static_cast<double>(compressed_status.velocity) / 100;
+  wheel_status.command_id = compressed_status.command_id;
+  wheel_status.effort = compressed_status.effort;
+  wheel_status.position = static_cast<double>(compressed_status.position) / 100;
+  wheel_status.rpm = compressed_status.rpm;
+  wheel_status.velocity = static_cast<double>(compressed_status.velocity) / 100;
 
   return wheel_status;
 }
