@@ -8,24 +8,21 @@
  * @copyright Copyright (c) 2021
  * 
  */
-#ifndef ___CAN_MSG_WRAPPER___
-#define ___CAN_MSG_WRAPPER___
+#ifndef JIMMBOT_BASE_CAN_MSG_WRAPPER_H_
+#define JIMMBOT_BASE_CAN_MSG_WRAPPER_H_
 
-#include <ros/ros.h>
 #include <jimmbot_msgs/CanFrame.h> // for jimmbot_msg::CanFrame
 #include <jimmbot_msgs/CanFrameStamped.h> // for jimmbot_msg::CanFrameStamped
 
-#include <string>
-#include <unordered_map>
-#include <cstdint>
+#include "can_packt.h" // for CanPackt
 
-#define CAN_MAX_DLEN 8
+#include <unordered_map> // for std::unordered_map
 
 namespace jimmbot_base
 {
   std::ostream &operator << (std::ostream &os, const jimmbot_msgs::CanFrame::ConstPtr &obj)
   {
-    os << "Id: " << std::hex << "0x" << obj->id << ", Data length: " << std::hex << static_cast<double>(obj->dlc) << std::endl;
+    os << "Data length: " << std::hex << static_cast<double>(obj->dlc) << std::endl;
 
     os << "Data: " << static_cast<double>(obj->data[0]) << "  "
                    << static_cast<double>(obj->data[1]) << "  "
@@ -39,30 +36,9 @@ namespace jimmbot_base
     return os;
   }
 
-  typedef struct Status
+  std::ostream &operator << (std::ostream &os, const wheel_status_t &obj)
   {
-    int _id = {0};
-    int _command = {0};
-    int _effort = {0};
-    double _position = {0};
-    int _rpm = {0};
-    double _velocity = {0};
-  }status_t;
-
-  // Define a bit-field struct to represent the compressed motor status data
-typedef struct __attribute__((packed)) {
-    uint32_t can_id : 11;
-    uint32_t command_id : 8;
-    uint32_t effort : 12;
-    uint32_t position : 20;
-    uint32_t rpm : 10;
-    uint32_t velocity : 24;
-} compressed_motor_status_t;
-
-  std::ostream &operator << (std::ostream &os, const status_t &obj)
-  {
-    os << "Id: " << std::hex << "0x" << obj._id
-       << ", Command: " << obj._command
+    os << "Command: " << obj._command
        << ", Effort: " << obj._effort
        << ", Position: " << obj._position
        << ", RPM: " << obj._rpm
@@ -101,7 +77,9 @@ typedef struct __attribute__((packed)) {
        * @param receive_id 
        */
       CanMsgWrapper(CanId transmit_id, CanId receive_id) : _txv_id(transmit_id),
-                                                           _rxv_id(receive_id) { };
+                                                           _rxv_id(receive_id) { 
+        canpressor_ = std::make_unique<CanPackt>(static_cast<uint8_t>(_txv_id), static_cast<uint8_t>(_rxv_id));
+      };
 
       /**
        * @brief Set the Speed object
@@ -128,9 +106,9 @@ typedef struct __attribute__((packed)) {
       /**
        * @brief Get the Status object
        * 
-       * @return status_t 
+       * @return wheel_status_t 
        */
-      status_t getStatus(void);
+      wheel_status_t getStatus(void);
 
       /**
        * @brief Get the Lights In Can object
@@ -148,12 +126,6 @@ typedef struct __attribute__((packed)) {
       void updateStatusFrame(jimmbot_msgs::CanFrame status_frame);
 
     private:
-      // Pack a motor status struct into a compressed CAN frame
-      jimmbot_msgs::CanFrame PackCompressedMotorStatus(const status_t& motorStatus);
-
-      // Unpack a motor status struct from a compressed CAN frame
-      status_t UnpackCompressedMotorStatus(const jimmbot_msgs::CanFrame& canFrame);
-
       /**
        * @brief 
        * 
@@ -236,6 +208,7 @@ typedef struct __attribute__((packed)) {
 
       CanId _rxv_id;
       CanId _txv_id;
+      std::unique_ptr<CanPackt> canpressor_;
       jimmbot_msgs::CanFrame _status_frame;
       double _speed;
       uint8_t _command;
@@ -292,4 +265,4 @@ typedef struct __attribute__((packed)) {
   };
 
 }//end namespace jimmbot_base
-#endif//end ___CAN_MSG_WRAPPER___
+#endif//end JIMMBOT_BASE_CAN_MSG_WRAPPER_H_

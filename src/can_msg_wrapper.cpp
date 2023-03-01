@@ -26,9 +26,9 @@ namespace jimmbot_base
     return _local;
   }
 
-  status_t CanMsgWrapper::getStatus(void)
+  wheel_status_t CanMsgWrapper::getStatus(void)
   {
-    return UnpackCompressedMotorStatus(this->_status_frame);
+    return canpressor_->UnpackCompressed<jimmbot_msgs::CanFrame, wheel_status_t>(this->_status_frame);
   }
 
   jimmbot_msgs::CanFrame CanMsgWrapper::getLightsInCan(const std::pair<bool, bool> &lights)
@@ -45,46 +45,6 @@ namespace jimmbot_base
   void CanMsgWrapper::updateStatusFrame(jimmbot_msgs::CanFrame status_frame)
   {
     this->_status_frame = status_frame;
-  }
-
-  // Pack a motor status struct into a compressed CAN frame
-  jimmbot_msgs::CanFrame CanMsgWrapper::PackCompressedMotorStatus(const status_t& motorStatus) {
-    jimmbot_msgs::CanFrame canFrame;
-    canFrame.id = motorStatus._id;
-    canFrame.dlc = CAN_MAX_DLEN;
-
-    // Compress the motor status data into a bit-field struct
-    compressed_motor_status_t compressedStatus;
-    compressedStatus.command_id = motorStatus._command;
-    compressedStatus.effort = motorStatus._effort;
-    compressedStatus.position = static_cast<uint32_t>(motorStatus._position * 100);
-    compressedStatus.rpm = motorStatus._rpm;
-    compressedStatus.velocity = static_cast<uint32_t>(motorStatus._velocity * 100);
-    compressedStatus.can_id = motorStatus._id & 0x7FF;
-
-    // Copy the compressed data into the CAN frame
-    std::memcpy(canFrame.data.c_array(), &compressedStatus, sizeof(compressed_motor_status_t));
-
-    return canFrame;
-  }
-
-  // Unpack a motor status struct from a compressed CAN frame
-  status_t CanMsgWrapper::UnpackCompressedMotorStatus(const jimmbot_msgs::CanFrame& canFrame) {
-    status_t motorStatus;
-
-    // Extract the compressed data from the CAN frame
-    compressed_motor_status_t compressedStatus;
-    std::memcpy(&compressedStatus, canFrame.data.data(), sizeof(compressed_motor_status_t));
-
-    // Unpack the compressed data into the motor status struct
-    motorStatus._id = canFrame.id;
-    motorStatus._command = compressedStatus.command_id;
-    motorStatus._effort = compressedStatus.effort;
-    motorStatus._position = static_cast<double>(compressedStatus.position) / 100;
-    motorStatus._rpm = compressedStatus.rpm;
-    motorStatus._velocity = static_cast<double>(compressedStatus.velocity) / 100;
-
-    return motorStatus;
   }
 
   bool CanMsgWrapper::negativeBit(const double &speed) const

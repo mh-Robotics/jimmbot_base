@@ -1,7 +1,9 @@
 #include "jimmbot_base/hardware_interface.hpp"
 #include "controller_manager/controller_manager.h"
 
-#include <ros/callback_queue.h>
+#include <ros/callback_queue.h> // for ros::CallbackQueue
+#include <chrono> // for std::chrono::milliseconds
+#include <thread> // for std::thread
 
 namespace jimmbot_base
 {
@@ -131,12 +133,32 @@ namespace jimmbot_base
       joint_elements_[static_cast<int>(CanMsgWrapper::CanId::COMMAND_WHEEL_BACK_RIGHT)].position = this->back_right_.getStatus()._position;
 
       // @todo(mhalimi): For debug purposes, printout the status 
-      // ROS_WARN_NAMED("hardware_interface", "Id: %#x", this->front_left_.getStatus()._id);
-      // ROS_WARN_NAMED("hardware_interface", "Command: %d", this->front_left_.getStatus()._command);
-      // ROS_WARN_NAMED("hardware_interface", "Effort: %d", this->front_left_.getStatus()._effort);
-      // ROS_WARN_NAMED("hardware_interface", "Position: %.2f", this->front_left_.getStatus()._position);
-      // ROS_WARN_NAMED("hardware_interface", "RPM: %d", this->front_left_.getStatus()._rpm);
-      // ROS_WARN_NAMED("hardware_interface", "Velocity: %.2f", this->front_left_.getStatus()._velocity);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "Id: %#x", this->front_left_.getStatus()._id);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "Command: %d", this->front_left_.getStatus()._command);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "Effort: %d", this->front_left_.getStatus()._effort);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "Position: %.2f", this->front_left_.getStatus()._position);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "RPM: %d", this->front_left_.getStatus()._rpm);
+      // ROS_WARN_NAMED("hardware_interface: front_left_", "Velocity: %.2f", this->front_left_.getStatus()._velocity);
+
+      ROS_WARN_NAMED("hardware_interface: front_right_", "Command: %d", this->front_right_.getStatus()._command);
+      ROS_WARN_NAMED("hardware_interface: front_right_", "Effort: %d", this->front_right_.getStatus()._effort);
+      ROS_WARN_NAMED("hardware_interface: front_right_", "Position: %.2f", this->front_right_.getStatus()._position);
+      ROS_WARN_NAMED("hardware_interface: front_right_", "RPM: %d", this->front_right_.getStatus()._rpm);
+      ROS_WARN_NAMED("hardware_interface: front_right_", "Velocity: %.2f", this->front_right_.getStatus()._velocity);
+
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "Id: %#x", this->back_left_.getStatus()._id);
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "Command: %d", this->back_left_.getStatus()._command);
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "Effort: %d", this->back_left_.getStatus()._effort);
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "Position: %.2f", this->back_left_.getStatus()._position);
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "RPM: %d", this->back_left_.getStatus()._rpm);
+      // ROS_WARN_NAMED("hardware_interface: back_left_", "Velocity: %.2f", this->back_left_.getStatus()._velocity);
+
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "Id: %#x", this->back_right_.getStatus()._id);
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "Command: %d", this->back_right_.getStatus()._command);
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "Effort: %d", this->back_right_.getStatus()._effort);
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "Position: %.2f", this->back_right_.getStatus()._position);
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "RPM: %d", this->back_right_.getStatus()._rpm);
+      // ROS_WARN_NAMED("hardware_interface: back_right_", "Velocity: %.2f", this->back_right_.getStatus()._velocity);
     }
 
     {
@@ -163,6 +185,7 @@ namespace jimmbot_base
       _data_frame.header.frame_id = this->frame_id_;
       _data_frame.can_frame = this->front_left_.getSpeedInCan();
       esp32_can_pub_.publish(_data_frame);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     {
@@ -170,6 +193,7 @@ namespace jimmbot_base
       _data_frame.header.frame_id = this->frame_id_;
       _data_frame.can_frame = this->front_right_.getSpeedInCan();
       esp32_can_pub_.publish(_data_frame);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     {
@@ -177,6 +201,7 @@ namespace jimmbot_base
       _data_frame.header.frame_id = this->frame_id_;
       _data_frame.can_frame = this->back_left_.getSpeedInCan();
       esp32_can_pub_.publish(_data_frame);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     {
@@ -184,6 +209,7 @@ namespace jimmbot_base
       _data_frame.header.frame_id = this->frame_id_;
       _data_frame.can_frame = this->back_right_.getSpeedInCan();
       esp32_can_pub_.publish(_data_frame);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     {
@@ -191,6 +217,7 @@ namespace jimmbot_base
       _data_frame.header.frame_id = this->frame_id_;
       _data_frame.can_frame = CanMsgWrapper::getLightsInCan(this->lights_);
       esp32_can_pub_.publish(_data_frame);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     
   }
