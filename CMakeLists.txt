@@ -1,5 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(jimmbot_base)
+
+set(CMAKE_CXX_CLANG_TIDY
+  clang-tidy-9;
+  -format-style='file';
+  -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
+)
 
 add_compile_options(-std=c++17)
 
