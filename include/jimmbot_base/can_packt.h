@@ -41,25 +41,25 @@
 
 #define CAN_MAX_DLEN 8
 
-typedef struct WheelStatus {
+using WheelStatus = struct WheelStatus {
   int command_id = {0};
-  int effort = {0};
+  double effort = {0};
   double position = {0};
   int rpm = {0};
   double velocity = {0};
-} wheel_status_t;
+};
 
 /**
  * @brief Defines a bit-field struct to represent the compressed motor status
  * data
  */
-typedef struct __attribute__((packed)) {
+using CompressedWheelStatus = struct __attribute__((packed)) {
   uint32_t command_id : 8; /**< Command ID */
   uint32_t effort : 12;    /**< Effort */
   int32_t position : 19;   /**< Position: 1 sign bit + 18 bits for magnitude */
   uint32_t rpm : 10;       /**< RPM */
   int32_t velocity : 23;   /**< Velocity: 1 sign bit + 22 bits for magnitude */
-} compressed_wheel_status_t;
+};
 
 /**
  * @brief A class for packing and unpacking compressed CAN messages
@@ -98,17 +98,17 @@ class CanPackt {
    * @return the packed CAN frame
    */
   template <typename inType, typename outType>
-  outType PackCompressed(const inType& data) {
+  outType PackCompressed(const inType& wheel_status) {
     static_assert(sizeof(inType) <= CAN_MAX_DLEN,
                   "Struct is larger than CAN message data field size");
 
-    jimmbot_msgs::CanFrame canFrame;
-    canFrame.id = transmit_id_;
-    canFrame.dlc = CAN_MAX_DLEN;
+    jimmbot_msgs::CanFrame can_frame;
+    can_frame.id = transmit_id_;
+    can_frame.dlc = CAN_MAX_DLEN;
 
-    ::memcpy(canFrame.data, &data, sizeof(inType));
+    std::memcpy(can_frame.data, &wheel_status, sizeof(inType));
 
-    return canFrame;
+    return can_frame;
   }
 
   /**
@@ -126,7 +126,7 @@ class CanPackt {
                   "Struct is larger than CAN message data field size");
 
     outType data;
-    ::memcpy(&data, can_frame.data, sizeof(outType));
+    std::memcpy(&data, can_frame.data, sizeof(outType));
 
     return data;
   }
@@ -147,16 +147,16 @@ class CanPackt {
  */
 template <>
 inline jimmbot_msgs::CanFrame
-CanPackt::PackCompressed<wheel_status_t, jimmbot_msgs::CanFrame>(
-    const wheel_status_t& wheel_status) {
-  jimmbot_msgs::CanFrame canFrame;
-  canFrame.id = transmit_id_;
-  canFrame.dlc = CAN_MAX_DLEN;
+CanPackt::PackCompressed<WheelStatus, jimmbot_msgs::CanFrame>(
+    const WheelStatus& wheel_status) {
+  jimmbot_msgs::CanFrame can_frame;
+  can_frame.id = transmit_id_;
+  can_frame.dlc = CAN_MAX_DLEN;
 
   // Compress the motor status data into a bit-field struct
-  compressed_wheel_status_t compressed_status;
+  CompressedWheelStatus compressed_status;
   compressed_status.command_id = wheel_status.command_id;
-  compressed_status.effort = wheel_status.effort & 0xFFF;
+  compressed_status.effort = static_cast<int>(wheel_status.effort) & 0xFFF;
   compressed_status.position =
       static_cast<int32_t>(wheel_status.position * 100);
   compressed_status.rpm = wheel_status.rpm & 0x3FF;
@@ -164,15 +164,15 @@ CanPackt::PackCompressed<wheel_status_t, jimmbot_msgs::CanFrame>(
       static_cast<int32_t>(wheel_status.velocity * 100);
 
   // Copy the compressed data into the CAN frame
-  ::memcpy(canFrame.data.c_array(), &compressed_status,
-           sizeof(compressed_wheel_status_t));
+  std::memcpy(can_frame.data.c_array(), &compressed_status,
+              sizeof(CompressedWheelStatus));
 
-  return canFrame;
+  return can_frame;
 }
 
 /**
  * @brief Specialization of the PackCompressed template function for unpacking a
- * jimmbot_msgs::CanFrame into a wheel_status_t
+ * jimmbot_msgs::CanFrame into a WheelStatus
  *
  * @tparam inType The type of the input data.
  * @tparam outType The type of the output data.
@@ -180,15 +180,15 @@ CanPackt::PackCompressed<wheel_status_t, jimmbot_msgs::CanFrame>(
  * @return The packed data as a wheel status data structure.
  */
 template <>
-inline wheel_status_t
-CanPackt::UnpackCompressed<jimmbot_msgs::CanFrame, wheel_status_t>(
+inline WheelStatus
+CanPackt::UnpackCompressed<jimmbot_msgs::CanFrame, WheelStatus>(
     const jimmbot_msgs::CanFrame& can_frame) {
-  wheel_status_t wheel_status;
+  WheelStatus wheel_status;
 
   // Extract the compressed data from the CAN frame
-  compressed_wheel_status_t compressed_status;
-  ::memcpy(&compressed_status, can_frame.data.data(),
-           sizeof(compressed_wheel_status_t));
+  CompressedWheelStatus compressed_status;
+  std::memcpy(&compressed_status, can_frame.data.data(),
+              sizeof(CompressedWheelStatus));
 
   // Unpack the compressed data into the motor status struct
   wheel_status.command_id = compressed_status.command_id;

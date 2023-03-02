@@ -1,79 +1,41 @@
-#include "jimmbot_base/can_msg_wrapper.hpp"
+#include "jimmbot_base/can_msg_wrapper.hpp"  // for CanMsgWrapper
 
 namespace jimmbot_base {
 
-void CanMsgWrapper::setSpeed(uint8_t command, double speed) {
-  command_ = command;
-  speed_ = speed;
+void CanMsgWrapper::SetWheelCommandStatus(const WheelStatus& command_status) {
+  command_status_ = command_status;
 }
 
-double CanMsgWrapper::getSpeed(void) { return speed_; }
-
-jimmbot_msgs::CanFrame CanMsgWrapper::getSpeedInCan(void) {
-  jimmbot_msgs::CanFrame _local;
-  _local.id = static_cast<int>(canpressor_->ReceiveId());
-  _local.dlc = CAN_MAX_DLEN;
-  _local.data[0] = command_;
-  _local.data[6] = negativeBit(speed_);
-  _local.data[7] = regulateSpeedToUInt8(speed_);
-
-  return _local;
+jimmbot_msgs::CanFrame CanMsgWrapper::GetWheelCommandStatus() const {
+  return canpressor_->PackCompressed<WheelStatus, jimmbot_msgs::CanFrame>(
+      command_status_);
 }
 
-wheel_status_t CanMsgWrapper::getStatus(void) {
-  return canpressor_->UnpackCompressed<jimmbot_msgs::CanFrame, wheel_status_t>(
-      status_frame_);
+WheelStatus CanMsgWrapper::GetWheelFeedbackStatus() const {
+  return canpressor_->UnpackCompressed<jimmbot_msgs::CanFrame, WheelStatus>(
+      feedback_status_);
 }
 
-jimmbot_msgs::CanFrame CanMsgWrapper::getLightsInCan(
+jimmbot_msgs::CanFrame CanMsgWrapper::GetLightsInCan(
     const std::pair<bool, bool>& lights) {
-  jimmbot_msgs::CanFrame _local;
-  _local.id = static_cast<int>(0x31);
-  _local.dlc = CAN_MAX_DLEN;
-  _local.data[static_cast<int>(CanMsgWrapper::LightsId::kLeftLightEnableBit)] =
-      lights.first;
-  _local.data[static_cast<int>(CanMsgWrapper::LightsId::kRightLightEnableBit)] =
-      lights.second;
+  jimmbot_msgs::CanFrame local;
+  local.id = static_cast<int>(0x31);
+  local.dlc = CAN_MAX_DLEN;
+  local.data[static_cast<int>(CanMsgWrapper::LightsId::kLeftLightEnableBit)] =
+      static_cast<unsigned char>(lights.first);
+  local.data[static_cast<int>(CanMsgWrapper::LightsId::kRightLightEnableBit)] =
+      static_cast<unsigned char>(lights.second);
 
-  return _local;
+  return local;
 }
 
-void CanMsgWrapper::updateStatusFrame(jimmbot_msgs::CanFrame status_frame) {
-  status_frame_ = status_frame;
+void CanMsgWrapper::UpdateWheelFeedbackStatusFrame(
+    jimmbot_msgs::CanFrame status_frame) {
+  feedback_status_ = status_frame;
 }
 
-bool CanMsgWrapper::negativeBit(const double& speed) const {
-  return speed < 0 ? true : false;
-}
-
-double CanMsgWrapper::linearToAngular(const double& speed) const {
-  return speed / getWheelDiameter() * 2;
-}
-
-double CanMsgWrapper::angularToLinear(const double& speed) const {
-  return speed * getWheelDiameter() / 2;
-}
-
-uint8_t CanMsgWrapper::regulateSpeedToUInt8(double speed) {
-  return (std::abs(angularToLinear(speed)) * UINT8_MAX / getMaxSpeed());
-}
-
-double CanMsgWrapper::regulateSpeedToDouble(uint8_t first_byte,
-                                            uint8_t second_byte) {
-  return (((second_byte / 10) + first_byte) * 10);
-}
-
-double CanMsgWrapper::regulatePositionToDouble(uint8_t first_byte,
-                                               uint8_t second_byte) {
-  return (((second_byte / 10) + first_byte) * 10);
-}
-
-int CanMsgWrapper::regulateRpmToInt(uint8_t first_byte, uint8_t second_byte) {
-  return (((second_byte / 10) + first_byte) * 10);
-}
-
-void CanMsgWrapperCommand::execute() {
-  auto pair = type2func.find(command_);
+void CanMsgWrapperCommand::Execute() {
+  auto pair = type2func.find(command);
 
   if (pair != type2func.end()) {
     pair->second();

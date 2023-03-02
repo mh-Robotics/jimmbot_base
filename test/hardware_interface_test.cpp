@@ -3,11 +3,11 @@
 
 class TargetTest : public ::testing::Test {
  public:
-  TargetTest() : spinner(0){};
+  TargetTest() : {};
   ~TargetTest(){};
 
   ros::NodeHandle* node;
-  ros::AsyncSpinner* spinner;
+  ros::AsyncSpinner* spinner{};
 
   void SetUp() override {
     ::testing::Test::SetUp();
