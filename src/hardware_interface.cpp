@@ -123,8 +123,6 @@ void JimmBotHardwareInterface::read(const ros::Time& /*time*/,
                            CanMsgWrapperCommand::Command::kWheelStatus},
       CanMsgWrapperCommand{std::ref(back_left_),
                            CanMsgWrapperCommand::Command::kWheelStatus},
-      //@todo use std::ref here and fix the definition to accept a refference
-      // wrapper
       CanMsgWrapperCommand{std::ref(back_right_),
                            CanMsgWrapperCommand::Command::kWheelStatus}};
 
@@ -148,16 +146,18 @@ void JimmBotHardwareInterface::UpdateJointsFromHardware() const {
 
     // @todo(mhalimi): For debug purposes, printout the status
     ROS_DEBUG_NAMED(
-        "hardware_interface: front_right_", "Command: %d",
+        "front_right_", "Command: %d",
         joint_elements_[back_right_.TransmitId()].feedback.command_id);
-    ROS_WARN_NAMED("hardware_interface: front_right_", "Effort: %.2f",
-                   joint_elements_[back_right_.TransmitId()].feedback.effort);
-    ROS_WARN_NAMED("hardware_interface: front_right_", "Position: %.2f",
-                   joint_elements_[back_right_.TransmitId()].feedback.position);
-    ROS_WARN_NAMED("hardware_interface: front_right_", "RPM: %d",
-                   joint_elements_[back_right_.TransmitId()].feedback.rpm);
-    ROS_WARN_NAMED("hardware_interface: front_right_", "Velocity: %.2f",
-                   joint_elements_[back_right_.TransmitId()].feedback.velocity);
+    ROS_DEBUG_NAMED("front_right_", "Effort: %.2f",
+                    joint_elements_[back_right_.TransmitId()].feedback.effort);
+    ROS_DEBUG_NAMED(
+        "front_right_", "Position: %.2f",
+        joint_elements_[back_right_.TransmitId()].feedback.position);
+    ROS_DEBUG_NAMED("front_right_", "RPM: %d",
+                    joint_elements_[back_right_.TransmitId()].feedback.rpm);
+    ROS_DEBUG_NAMED(
+        "front_right_", "Velocity: %.2f",
+        joint_elements_[back_right_.TransmitId()].feedback.velocity);
   }
 }
 
@@ -219,7 +219,6 @@ void JimmBotHardwareInterface::UpdateAngleToKinectCameras() {
 void JimmBotHardwareInterface::CanFeedbackMsgCallback(
     const jimmbot_msgs::CanFrameStamped::ConstPtr& feedback_msg) {
   std::vector<CanMsgWrapperCommand> update_status_frames_commands{
-      // todo: Filter by proper ID
       CanMsgWrapperCommand{std::ref(front_left_),
                            CanMsgWrapperCommand::Command::kWheelStatusUpdate,
                            feedback_msg->can_frame},

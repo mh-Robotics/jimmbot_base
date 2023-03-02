@@ -31,7 +31,9 @@ jimmbot_msgs::CanFrame CanMsgWrapper::GetLightsInCan(
 
 void CanMsgWrapper::UpdateWheelFeedbackStatusFrame(
     jimmbot_msgs::CanFrame status_frame) {
-  feedback_status_ = status_frame;
+  if (status_frame.id == canpressor_->ReceiveId()) {
+    feedback_status_ = status_frame;
+  }
 }
 
 void CanMsgWrapperCommand::Execute() {
