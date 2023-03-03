@@ -1,7 +1,7 @@
 /**
  * @file jimmbot_hardware_interface.hpp
  * @author Mergim Halimi (m.halimi123@gmail.com)
- * @brief This file contains the declaration of the JimmBotHardwareInterface
+ * @brief This file contains the definitions of the JimmBotHardwareInterface
  * class. The JimmBotHardwareInterface is a class that implements the ROS
  * RobotHW interface. It provides an interface to interact with the hardware of
  * the JimmBot robot.
@@ -55,7 +55,6 @@
 
 /**
  * @brief jimmbot_base namespace
- *
  */
 namespace jimmbot_base {
 /**
@@ -93,18 +92,14 @@ class JimmBotHardwareInterface : public hardware_interface::RobotHW {
   };
 
   /**
-   * @brief Construct a new Jimm Bot Hardware Interface object
-   *
-   */
-  JimmBotHardwareInterface() = delete;
-
-  /**
    * @brief Constructs a new JimmBotHardwareInterface object.
    *
    * @param nh A pointer to the ROS node handle.
    * @param nh_param A pointer to the ROS node handle for parameters.
    */
-  JimmBotHardwareInterface(ros::NodeHandle* nh, ros::NodeHandle* nh_param);
+  explicit JimmBotHardwareInterface(
+      std::reference_wrapper<ros::NodeHandle> nh,
+      std::reference_wrapper<ros::NodeHandle> nh_param);
 
   /**
    * @brief Register the controller interface

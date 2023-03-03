@@ -40,6 +40,8 @@
 
 namespace jimmbot_base {
 
+constexpr auto kCanMaxDLen{8};
+constexpr auto kLightCanMsgId{0x31};
 constexpr auto kFirst{0};
 constexpr auto kSecond{1};
 

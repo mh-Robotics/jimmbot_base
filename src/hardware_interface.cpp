@@ -1,3 +1,42 @@
+/**
+ * @file jimmbot_hardware_interface.hpp
+ * @author Mergim Halimi (m.halimi123@gmail.com)
+ * @brief This file contains the implementation of the JimmBotHardwareInterface
+ * class. The JimmBotHardwareInterface is a class that implements the ROS
+ * RobotHW interface. It provides an interface to interact with the hardware of
+ * the JimmBot robot.
+ * @version 0.1
+ * @date 2021-03-23
+ *
+ * @copyright Copyright (c) 2020-2023, mhRobotics, Inc. All rights reserved.
+ * @license This project is released under the BSD 3-Clause License
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 #include "jimmbot_base/hardware_interface.hpp"  // for JimmBotHardwareInterface
 
 #include <ros/callback_queue.h>  // for ros::CallbackQueue
@@ -7,46 +46,51 @@
 
 #include "controller_manager/controller_manager.h"  // for controller_manager::ControllerManager
 
+namespace {
+constexpr auto kOneSecond = 1;
+}
+
 namespace jimmbot_base {
-JimmBotHardwareInterface::JimmBotHardwareInterface(ros::NodeHandle* nh,
-                                                   ros::NodeHandle* nh_param)
+JimmBotHardwareInterface::JimmBotHardwareInterface(
+    std::reference_wrapper<ros::NodeHandle> nh,
+    std::reference_wrapper<ros::NodeHandle> nh_param)
     : lights_(false, false),
       camera_angles_({}, {}),
       control_frequency_(kDefaultControlFrequency),
       max_wheel_speed_(kDefaultMaxAllowedWheelSpeed) {
-  if (!nh_param->getParam(kControlFrequencyKey, control_frequency_)) {
-    nh_param->param<double>(kControlFrequencyKey, control_frequency_,
-                            kDefaultControlFrequency);
+  if (!nh_param.get().getParam(kControlFrequencyKey, control_frequency_)) {
+    nh_param.get().param<double>(kControlFrequencyKey, control_frequency_,
+                                 kDefaultControlFrequency);
   }
 
-  if (!nh_param->getParam(kMaxWheelSpeedKey, max_wheel_speed_)) {
-    nh_param->param<double>(kMaxWheelSpeedKey, max_wheel_speed_,
-                            kDefaultMaxAllowedWheelSpeed);
+  if (!nh_param.get().getParam(kMaxWheelSpeedKey, max_wheel_speed_)) {
+    nh_param.get().param<double>(kMaxWheelSpeedKey, max_wheel_speed_,
+                                 kDefaultMaxAllowedWheelSpeed);
   }
 
-  if (!nh_param->getParam(kCommandFrameIdKey, frame_id_)) {
-    nh_param->param<std::string>(kCommandFrameIdKey, frame_id_,
-                                 kDefaultCommandFrameId);
+  if (!nh_param.get().getParam(kCommandFrameIdKey, frame_id_)) {
+    nh_param.get().param<std::string>(kCommandFrameIdKey, frame_id_,
+                                      kDefaultCommandFrameId);
   }
 
-  if (!nh_param->getParam(kLeftWheelFrontKey, left_wheel_front_)) {
-    nh_param->param<std::string>(kLeftWheelFrontKey, left_wheel_front_,
-                                 kDefaultLeftWheelFront);
+  if (!nh_param.get().getParam(kLeftWheelFrontKey, left_wheel_front_)) {
+    nh_param.get().param<std::string>(kLeftWheelFrontKey, left_wheel_front_,
+                                      kDefaultLeftWheelFront);
   }
 
-  if (!nh_param->getParam(kLeftWheelBackKey, left_wheel_back_)) {
-    nh_param->param<std::string>(kLeftWheelBackKey, left_wheel_back_,
-                                 kDefaultLeftWheelBack);
+  if (!nh_param.get().getParam(kLeftWheelBackKey, left_wheel_back_)) {
+    nh_param.get().param<std::string>(kLeftWheelBackKey, left_wheel_back_,
+                                      kDefaultLeftWheelBack);
   }
 
-  if (!nh_param->getParam(kRightWheelFrontKey, right_wheel_front_)) {
-    nh_param->param<std::string>(kRightWheelFrontKey, right_wheel_front_,
-                                 kDefaultRightWheelFront);
+  if (!nh_param.get().getParam(kRightWheelFrontKey, right_wheel_front_)) {
+    nh_param.get().param<std::string>(kRightWheelFrontKey, right_wheel_front_,
+                                      kDefaultRightWheelFront);
   }
 
-  if (!nh_param->getParam(kRightWheelBackKey, right_wheel_back_)) {
-    nh_param->param<std::string>(kRightWheelBackKey, right_wheel_back_,
-                                 kDefaultRightWheelBack);
+  if (!nh_param.get().getParam(kRightWheelBackKey, right_wheel_back_)) {
+    nh_param.get().param<std::string>(kRightWheelBackKey, right_wheel_back_,
+                                      kDefaultRightWheelBack);
   }
 
   RegisterControlInterfaces();
@@ -110,7 +154,7 @@ void JimmBotHardwareInterface::write(const ros::Time& /*time*/,
     speed_command.Execute();
   }
 
-  //@todo write to AUX kinect
+  //@todo(issues/6): Write the angle to AUX kinect
   UpdateSpeedToHardware();
 }
 
@@ -164,7 +208,7 @@ void JimmBotHardwareInterface::UpdateJointsFromHardware() const {
 void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
   jimmbot_msgs::CanFrameStamped data_frame;
 
-  {  // e boj pack e dergoj can, nfirmware e boj unpack
+  {
     data_frame.header.stamp = ros::Time::now();
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = front_left_.GetWheelCommandStatus();
@@ -213,7 +257,7 @@ void JimmBotHardwareInterface::UpdateAngleToKinectCameras() {
            ? std::get<kFirst>(camera_angles_)
            : std::get<kSecond>(camera_angles_));
 
-  // todo publish angle to topic
+  // @todo(issues/6): Publish angle to Kinect AUX node topic
 }
 
 void JimmBotHardwareInterface::CanFeedbackMsgCallback(
@@ -272,17 +316,17 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "hardware_interface_node");
   ros::NodeHandle nh;
   ros::NodeHandle nh_param("~");
-  const double one_second = 1;
 
-  jimmbot_base::JimmBotHardwareInterface hardware_interface(&nh, &nh_param);
+  jimmbot_base::JimmBotHardwareInterface hardware_interface(std::ref(nh),
+                                                            std::ref(nh_param));
 
   controller_manager::ControllerManager controller_manager(&hardware_interface);
 
   ros::CallbackQueue jimmbot_queue;
-  ros::AsyncSpinner jimmbot_spinner(one_second, &jimmbot_queue);
+  ros::AsyncSpinner jimmbot_spinner(kOneSecond, &jimmbot_queue);
 
   ros::TimerOptions control_loop_timer(
-      ros::Duration(one_second / hardware_interface.GetControlFrequency()),
+      ros::Duration(kOneSecond / hardware_interface.GetControlFrequency()),
       std::bind(jimmbot_base::ControlLoopCallback, std::ref(hardware_interface),
                 std::ref(controller_manager), hardware_interface.GetTimeNow()),
       &jimmbot_queue);

@@ -36,10 +36,10 @@
  */
 #include <jimmbot_msgs/CanFrame.h>  // for jimmbot_msg::CanFrame
 
+#include "constants.h"  // for jimmbot_base::k*
+
 #ifndef JIMMBOT_BASE_CAN_PACKT_H_
 #define JIMMBOT_BASE_CAN_PACKT_H_
-
-#define CAN_MAX_DLEN 8
 
 using WheelStatus = struct WheelStatus {
   int command_id = {0};
@@ -53,7 +53,8 @@ using WheelStatus = struct WheelStatus {
  * @brief Defines a bit-field struct to represent the compressed motor status
  * data
  */
-using CompressedWheelStatus = struct __attribute__((packed)) {
+using CompressedWheelStatus =
+    struct __attribute__((packed)) CompressedWheelStatus {
   uint32_t command_id : 8; /**< Command ID */
   uint32_t effort : 12;    /**< Effort */
   int32_t position : 19;   /**< Position: 1 sign bit + 18 bits for magnitude */
@@ -99,12 +100,12 @@ class CanPackt {
    */
   template <typename inType, typename outType>
   outType PackCompressed(const inType& wheel_status) {
-    static_assert(sizeof(inType) <= CAN_MAX_DLEN,
+    static_assert(sizeof(inType) <= jimmbot_base::kCanMaxDLen,
                   "Struct is larger than CAN message data field size");
 
     jimmbot_msgs::CanFrame can_frame;
     can_frame.id = transmit_id_;
-    can_frame.dlc = CAN_MAX_DLEN;
+    can_frame.dlc = jimmbot_base::kCanMaxDLen;
 
     std::memcpy(can_frame.data, &wheel_status, sizeof(inType));
 
@@ -122,7 +123,7 @@ class CanPackt {
    */
   template <typename inType, typename outType>
   outType UnpackCompressed(const inType& can_frame) {
-    static_assert(sizeof(outType) <= CAN_MAX_DLEN,
+    static_assert(sizeof(outType) <= jimmbot_base::kCanMaxDLen,
                   "Struct is larger than CAN message data field size");
 
     outType data;
@@ -151,7 +152,7 @@ CanPackt::PackCompressed<WheelStatus, jimmbot_msgs::CanFrame>(
     const WheelStatus& wheel_status) {
   jimmbot_msgs::CanFrame can_frame;
   can_frame.id = transmit_id_;
-  can_frame.dlc = CAN_MAX_DLEN;
+  can_frame.dlc = jimmbot_base::kCanMaxDLen;
 
   // Compress the motor status data into a bit-field struct
   CompressedWheelStatus compressed_status;

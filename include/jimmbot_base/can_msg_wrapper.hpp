@@ -1,9 +1,14 @@
 /**
  * @file can_msg_wrapper.hpp
  * @author Mergim Halimi (m.halimi123@gmail.com)
- * @brief
- * @version 0.1
- * @date 2021-03-23
+ * @brief This file contains the definition of the CanMsgWrapper class.
+ * CanMsgWrapper is a class that allows for the easy exchange of information
+ * with the hardware of the JimmBot robot using the CAN (Controller Area
+ * Network) protocol. The class encapsulates a CAN message and provides methods
+ * for setting and getting the message data, such as the ID, length, and
+ * payload.
+ * @version 0.2
+ * @date 2023-03-03
  *
  * @copyright Copyright (c) 2020-2023, mhRobotics, Inc. All rights reserved.
  * @license This project is released under the BSD 3-Clause License
@@ -74,7 +79,7 @@ class CanMsgWrapper {
   /**
    * @brief An enum representing the different CAN IDs
    */
-  // todo remove public, and find a way to set these
+  // @todo(issues/5): Try to convert the CanID enum to private.
  public:
   enum class CanId : uint8_t {
     kBegin = 0,
@@ -164,7 +169,7 @@ class CanMsgWrapperCommand : Command {
   /**
    * @brief An enum representing the different commands
    */
-  // todo remove public, and find a way to set these
+  // @todo(issues/5): Try to convert the Command enum to private.
  public:
   enum class Command : uint8_t {
     kBegin = 0,
@@ -180,10 +185,7 @@ class CanMsgWrapperCommand : Command {
  public:
   CanMsgWrapper& can_wrapper;
   Command command;
-  jimmbot_msgs::CanFrame
-      feedback_status;  // this is feedback can frame, it gets updated when the
-                        // command constructor is called
-  // and sent to wrapper from kMotorUpdate
+  jimmbot_msgs::CanFrame feedback_status;
   WheelStatus command_status;
 
   CanMsgWrapperCommand(const CanMsgWrapperCommand&) = default;
@@ -212,17 +214,12 @@ class CanMsgWrapperCommand : Command {
        [&]() { return can_wrapper.SetWheelCommandStatus(command_status); }},
       {Command::kWheelOn,
        [&]() { return can_wrapper.SetWheelCommandStatus(command_status); }},
-      // ky get statusi ta kthen status struct ama e bon unpack prej can
       {Command::kWheelStatus,
        [&]() { return can_wrapper.GetWheelFeedbackStatus(); }},
-      // nalt e merr statusin, poste e bon update statusin qe emerr nalt, shtoje
-      // nje scoped mutex
       {Command::kWheelStatusUpdate,
        [&]() {
          return can_wrapper.UpdateWheelFeedbackStatusFrame(feedback_status);
        }},
-      // ^ nji status frame e kem qe e marrim prej topicut, can mesazh prej
-      // feedbackut
       {Command::kWheelSpeed,
        [&]() { return can_wrapper.SetWheelCommandStatus(command_status); }}};
 
