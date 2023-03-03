@@ -1,12 +1,41 @@
 /**
  * @file jimmbot_hardware_interface.hpp
  * @author Mergim Halimi (m.halimi123@gmail.com)
- * @brief
+ * @brief This file contains the definitions of the JimmBotHardwareInterface
+ * class. The JimmBotHardwareInterface is a class that implements the ROS
+ * RobotHW interface. It provides an interface to interact with the hardware of
+ * the JimmBot robot.
  * @version 0.1
  * @date 2021-03-23
  *
- * @copyright Copyright (c) 2021
+ * @copyright Copyright (c) 2020-2023, mhRobotics, Inc. All rights reserved.
+ * @license This project is released under the BSD 3-Clause License
  *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 #ifndef JIMMBOT_HARDWARE_INTERFACE_H_
 #define JIMMBOT_HARDWARE_INTERFACE_H_
@@ -21,158 +50,150 @@
 #include <ros/subscriber.h>                // for ros::Subscriber
 #include <std_msgs/Float64.h>              // for std_msgs::Float64
 
-// #include <set>
-#include <utility>  // for std::distance
-
 #include "can_msg_wrapper.hpp"       // for CanMsgWrapper
 #include "jimmbot_base/constants.h"  // for jimmbot_base::k*
 
 /**
  * @brief jimmbot_base namespace
- *
  */
 namespace jimmbot_base {
 /**
- * @brief Get the Index object
+ * @brief Returns a lambda function that calculates the index of the iterator in
+ * the given collection.
  *
- * @tparam Collection
- * @param collection
- * @param offset
- * @return auto
+ * @tparam Collection The type of the collection.
+ * @param collection The collection.
+ * @param offset The offset to add to the index.
+ * @return The lambda function that calculates the index.
  */
 template <typename Collection>
-auto getIndex(Collection const& collection, size_t offset = 0) {
+auto GetIndex(Collection const& collection, size_t offset = 0) {
   return [&collection, offset](auto const& iterator) {
     return offset + std::distance(std::begin(collection), iterator);
   };
 }
 
 /**
- * @brief Definition of JimmBotHardwareInterface class
+ * @brief Definition of the JimmBotHardwareInterface class.
  *
+ * The JimmBotHardwareInterface is a class that implements the ROS RobotHW
+ * interface. It provides an interface to interact with the hardware of the
+ * JimmBot robot.
  */
 class JimmBotHardwareInterface : public hardware_interface::RobotHW {
  public:
   /**
-   * @brief Joint elements structure. Used to save the data for joint
-   *
+   * @brief The Joint element structure.This struct is used to save the data for
+   * a joint.
    */
-  typedef struct JointElements {
-    double velocity_command = 0;
-    double position = 0;
-    double velocity = 0;
-    double effort = 0;
-  } joint_elemets_t;
+  using JointElements = struct JointElements {
+    mutable WheelStatus command;   ///< The command wheel status.
+    mutable WheelStatus feedback;  ///< The feedback wheel status.
+  };
 
   /**
-   * @brief Construct a new Jimm Bot Hardware Interface object
+   * @brief Constructs a new JimmBotHardwareInterface object.
    *
+   * @param nh A pointer to the ROS node handle.
+   * @param nh_param A pointer to the ROS node handle for parameters.
    */
-  JimmBotHardwareInterface(void) = delete;
-
-  /**
-   * @brief Construct a new Jimm Bot Hardware Interface object
-   *
-   * @param nh
-   * @param nh_param
-   */
-  JimmBotHardwareInterface(ros::NodeHandle* nh, ros::NodeHandle* nh_param);
+  explicit JimmBotHardwareInterface(
+      std::reference_wrapper<ros::NodeHandle> nh,
+      std::reference_wrapper<ros::NodeHandle> nh_param);
 
   /**
    * @brief Register the controller interface
-   *
    */
-  void registerControlInterfaces();
+  void RegisterControlInterfaces();
 
   /**
    * @brief Read data from hardware and update the state
-   *
    */
-  void readFromHardware(void);
+  void read(const ros::Time& /*time*/,
+            const ros::Duration& /*period*/) override;
 
   /**
    * @brief Write data to the hardware
-   *
    */
-  void writeToHardware(void);
+  void write(const ros::Time& /*time*/,
+             const ros::Duration& /*period*/) override;
 
   /**
-   * @brief Get the Time Now object
+   * @brief Returns the current time.
    *
-   * @return ros::Time
+   * @return The current time.
    */
-  inline ros::Time getTimeNow(void) { return ros::Time::now(); }
+  [[nodiscard]] inline ros::Time GetTimeNow() const { return ros::Time::now(); }
 
   /**
-   * @brief Get the Control Frequency object
+   * @brief Returns the control frequency.
    *
-   * @return double
+   * @return The control frequency.
    */
-  inline double getControlFrequency(void) { return this->control_frequency_; }
-
-  /**
-   * @brief Get the Elapsed Time object
-   *
-   * @param last_time
-   * @return ros::Duration
-   */
-  inline ros::Duration getElapsedTime(ros::Time last_time) {
-    return ros::Duration(this->getTimeNow() - last_time);
+  [[nodiscard]] inline double GetControlFrequency() const {
+    return this->control_frequency_;
   }
 
   /**
-   * @brief Callback for the received
+   * @brief Returns the elapsed time since the last update.
    *
-   * @param feedback_msg_array
+   * @param last_time The last update time.
+   * @return The elapsed time.
    */
-  void canFeedbackMsgCallback(
-      const jimmbot_msgs::CanFrameStamped::ConstPtr& feedback_msg_array);
+  [[nodiscard]] inline ros::Duration GetElapsedTime(ros::Time last_time) const {
+    return static_cast<ros::Duration>(this->GetTimeNow() - last_time);
+  }
 
   /**
-   * @brief
+   * @brief The callback function for the CAN feedback message.
    *
-   * @param extn_data_msg
+   * @param feedback_msg The feedback message.
    */
-  void extnDataMsgCallback(
+  void CanFeedbackMsgCallback(
+      const jimmbot_msgs::CanFrameStamped::ConstPtr& feedback_msg);
+
+  /**
+   * @brief Callback function for external data message.
+   *
+   * @param extn_data_msg Pointer to the external data message.
+   */
+  void ExtnDataMsgCallback(
       const jimmbot_msgs::ExtnDataStamped::ConstPtr& extn_data_msg);
 
   /**
-   * @brief
+   * @brief Callback function for front camera tilt angle.
    *
-   * @param extn_data_msg
+   * @param angle Pointer to the front camera tilt angle.
    */
-  void cameraTiltFrontCallback(const std_msgs::Float64::ConstPtr& angle);
+  void CameraTiltFrontCallback(const std_msgs::Float64::ConstPtr& angle);
 
   /**
-   * @brief
+   * @brief Callback function for back camera tilt angle.
    *
-   * @param extn_data_msg
+   * @param angle Pointer to the back camera tilt angle.
    */
-  void cameraTiltBackCallback(const std_msgs::Float64::ConstPtr& angle);
+  void CameraTiltBackCallback(const std_msgs::Float64::ConstPtr& angle);
 
  private:
   /**
-   * @brief
-   *
+   * @brief Update the joints from hardware.
    */
-  void updateJointsFromHardware(void);
+  void UpdateJointsFromHardware() const;
 
   /**
-   * @brief
-   *
+   * @brief Update the speed to hardware.
    */
-  void updateSpeedToHardware(void);
+  void UpdateSpeedToHardware() const;
 
   /**
-   * @brief
-   *
+   * @brief Update the angle to kinect cameras.
    */
-  void updateAngleToKinectCameras(void);
+  void UpdateAngleToKinectCameras();
 
   hardware_interface::JointStateInterface joint_state_interface_;
   hardware_interface::VelocityJointInterface joint_velocity_interface_;
 
-  std::vector<joint_elemets_t> joint_elements_;
+  std::vector<JointElements> joint_elements_;
 
   CanMsgWrapper front_left_ = CanMsgWrapper(
       static_cast<uint8_t>(CanMsgWrapper::CanId::kCommandWheelFrontLeft),
