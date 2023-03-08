@@ -193,7 +193,9 @@ class JimmBotHardwareInterface : public hardware_interface::RobotHW {
   hardware_interface::JointStateInterface joint_state_interface_;
   hardware_interface::VelocityJointInterface joint_velocity_interface_;
 
-  std::vector<JointElements> joint_elements_;
+  // @todo(jimmyhalimi): Check why this does not work. Access is not possible.
+  // std::vector<JointElements> joint_elements_;
+  JointElements joint_elements_[4];
 
   CanMsgWrapper front_left_ = CanMsgWrapper(
       static_cast<uint8_t>(CanMsgWrapper::CanId::kCommandWheelFrontLeft),

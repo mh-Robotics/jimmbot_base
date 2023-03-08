@@ -34,8 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <rosparam command="load" file="$(find jimmbot_base)/config/hardware_interface.yaml" />
 
   <node pkg="jimmbot_base" type="hardware_interface" name="hardware_interface_node">
-    <remap from="command/can_msg_array" to="esp32/command/can_msg" />
-    <remap from="feedback/can_msg_array" to="esp32/feedback/can_msg" />
+    <remap from="command/can_msg" to="esp32/command/can_msg" />
+    <remap from="feedback/can_msg" to="esp32/feedback/can_msg" />
     <remap from="extn_data" to="/jimmbot_controller/jimmbot_extn_data_controller/extn_data" />
   </node>
 

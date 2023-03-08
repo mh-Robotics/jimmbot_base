@@ -40,6 +40,7 @@
 #include "jimmbot_base/hardware_interface.hpp"  // for JimmBotHardwareInterface
 
 #include <ros/callback_queue.h>  // for ros::CallbackQueue
+#include <ros/console.h>         // for ROS_DEBUG_NAMED
 
 #include <chrono>  // for std::chrono::milliseconds
 #include <thread>  // for std::thread
