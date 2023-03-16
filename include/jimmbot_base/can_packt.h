@@ -42,11 +42,11 @@
 #define JIMMBOT_BASE_CAN_PACKT_H_
 
 using WheelStatus = struct WheelStatus {
-  int command_id = {0};
-  double effort = {0};
-  double position = {0};
+  int command_id{0};
+  double effort{0.0};
+  double position{0.0};
   int rpm = {0};
-  double velocity = {0};
+  double velocity{0.0};
 };
 
 /**

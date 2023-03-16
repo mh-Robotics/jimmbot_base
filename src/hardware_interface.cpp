@@ -49,7 +49,7 @@
 
 namespace {
 constexpr auto kOneSecond = 1;
-}
+}  // namespace
 
 namespace jimmbot_base {
 JimmBotHardwareInterface::JimmBotHardwareInterface(
@@ -155,6 +155,18 @@ void JimmBotHardwareInterface::write(const ros::Time& /*time*/,
     speed_command.Execute();
   }
 
+  // @todo(mhalimi): For debug purposes, printout the status
+  // ROS_WARN_NAMED("back_right_", "C: Command: %d",
+  //                joint_elements_[back_right_.TransmitId()].command.command_id);
+  // ROS_WARN_NAMED("back_right_", "C: Effort: %.2f",
+  //                joint_elements_[back_right_.TransmitId()].command.effort);
+  // ROS_WARN_NAMED("back_right_", "C: Position: %.2f",
+  //                joint_elements_[back_right_.TransmitId()].command.position);
+  // ROS_WARN_NAMED("back_right_", "C: RPM: %d",
+  //                joint_elements_[back_right_.TransmitId()].command.rpm);
+  // ROS_WARN_NAMED("back_right_", "C: Velocity: %.2f",
+  //                joint_elements_[back_right_.TransmitId()].command.velocity);
+
   //@todo(issues/6): Write the angle to AUX kinect
   UpdateSpeedToHardware();
 }
@@ -190,19 +202,17 @@ void JimmBotHardwareInterface::UpdateJointsFromHardware() const {
         back_right_.GetWheelFeedbackStatus();
 
     // @todo(mhalimi): For debug purposes, printout the status
-    ROS_DEBUG_NAMED(
-        "front_right_", "Command: %d",
-        joint_elements_[back_right_.TransmitId()].feedback.command_id);
-    ROS_DEBUG_NAMED("front_right_", "Effort: %.2f",
-                    joint_elements_[back_right_.TransmitId()].feedback.effort);
-    ROS_DEBUG_NAMED(
-        "front_right_", "Position: %.2f",
-        joint_elements_[back_right_.TransmitId()].feedback.position);
-    ROS_DEBUG_NAMED("front_right_", "RPM: %d",
-                    joint_elements_[back_right_.TransmitId()].feedback.rpm);
-    ROS_DEBUG_NAMED(
-        "front_right_", "Velocity: %.2f",
-        joint_elements_[back_right_.TransmitId()].feedback.velocity);
+    // ROS_WARN_NAMED(
+    //     "back_right_", "F: Command: %d",
+    //     joint_elements_[back_right_.TransmitId()].feedback.command_id);
+    // ROS_WARN_NAMED("back_right_", "F: Effort: %.2f",
+    //                joint_elements_[back_right_.TransmitId()].feedback.effort);
+    // ROS_WARN_NAMED("back_right_", "F: Position: %.2f",
+    //                joint_elements_[back_right_.TransmitId()].feedback.position);
+    // ROS_WARN_NAMED("back_right_", "F: RPM: %d",
+    //                joint_elements_[back_right_.TransmitId()].feedback.rpm);
+    // ROS_WARN_NAMED("back_right_", "F: Velocity: %.2f",
+    //                joint_elements_[back_right_.TransmitId()].feedback.velocity);
   }
 }
 
@@ -214,7 +224,7 @@ void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = front_left_.GetWheelCommandStatus();
     esp32_can_pub_.publish(data_frame);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 
   {
@@ -222,7 +232,7 @@ void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = front_right_.GetWheelCommandStatus();
     esp32_can_pub_.publish(data_frame);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 
   {
@@ -230,7 +240,7 @@ void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = back_left_.GetWheelCommandStatus();
     esp32_can_pub_.publish(data_frame);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 
   {
@@ -238,7 +248,7 @@ void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = back_right_.GetWheelCommandStatus();
     esp32_can_pub_.publish(data_frame);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 
   {
@@ -246,7 +256,7 @@ void JimmBotHardwareInterface::UpdateSpeedToHardware() const {
     data_frame.header.frame_id = frame_id_;
     data_frame.can_frame = CanMsgWrapper::GetLightsInCan(lights_);
     esp32_can_pub_.publish(data_frame);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }
 

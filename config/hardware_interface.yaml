@@ -1,6 +1,6 @@
 hardware_interface:
   control_frequency: 10.0
-  max_wheel_speed: 2.5
+  max_wheel_speed: 4.0
   command_frame_id: "/jimmbot/hw/cmd"
 
   #Wheel joints. Update accordingly with URDF and diff_drive_controller

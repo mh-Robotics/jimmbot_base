@@ -50,6 +50,9 @@
 #include "can_packt.h"  // for CanPackt
 
 namespace jimmbot_base {
+
+constexpr auto kWheelDiameter = 0.1651;
+
 std::ostream& operator<<(std::ostream& os,
                          const jimmbot_msgs::CanFrame::ConstPtr& obj) {
   os << "Data length: " << std::hex << static_cast<double>(obj->dlc)
@@ -153,6 +156,26 @@ class CanMsgWrapper {
   };
   [[nodiscard]] inline uint8_t ReceiveId() const {
     return canpressor_->ReceiveId();
+  };
+
+  /**
+   * @brief Convert linear travel in meters to angular rotation in radians
+   *
+   * @param travel The linear travel to convert, in meters
+   * @return The equivalent angular rotation, in radians
+   */
+  [[nodiscard]] inline double LinearToAngular(const double& travel) const {
+    return travel / kWheelDiameter * 2;
+  };
+
+  /**
+   * @brief Convert angular rotation in radians to linear travel in meters
+   *
+   * @param angle The angular rotation to convert, in radians
+   * @return The equivalent linear travel, in meters
+   */
+  [[nodiscard]] inline double AngularToLinear(const double& angle) const {
+    return angle * kWheelDiameter / 2;
   };
 
  private:

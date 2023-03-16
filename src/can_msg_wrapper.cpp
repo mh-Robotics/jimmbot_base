@@ -49,14 +49,29 @@ void CanMsgWrapper::SetWheelCommandStatus(const WheelStatus& command_status) {
 
 jimmbot_msgs::CanFrame CanMsgWrapper::GetWheelCommandStatus() const {
   // @todo(issues/3): Add a scoped_mutex for command_status_
+  auto command = command_status_;
+
+  // Convert current velocity to Linear from RoboHW to jimmBOT
+  // @todo(mhalimi1): Check if we can do these conversions in WheelHub and get
+  // rid of these here. Problem: Values are high to be packed/unpacked
+  command.velocity = AngularToLinear(command_status_.velocity);
+
   return canpressor_->PackCompressed<WheelStatus, jimmbot_msgs::CanFrame>(
-      command_status_);
+      command);
 }
 
 WheelStatus CanMsgWrapper::GetWheelFeedbackStatus() const {
   // @todo(issues/4): Add a scoped_mutex for feedback_status_
-  return canpressor_->UnpackCompressed<jimmbot_msgs::CanFrame, WheelStatus>(
-      feedback_status_);
+  auto feedback =
+      canpressor_->UnpackCompressed<jimmbot_msgs::CanFrame, WheelStatus>(
+          feedback_status_);
+
+  // Convert received velocity to Angular for RoboHW from jimmBOT
+  // @todo(mhalimi1): Check if we can do these conversions in WheelHub and get
+  // rid of these here. Problem: Values are high to be packed/unpacked
+  feedback.velocity = LinearToAngular(feedback.velocity);
+
+  return feedback;
 }
 
 jimmbot_msgs::CanFrame CanMsgWrapper::GetLightsInCan(

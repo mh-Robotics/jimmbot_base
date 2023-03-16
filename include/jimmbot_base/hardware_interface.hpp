@@ -87,8 +87,8 @@ class JimmBotHardwareInterface : public hardware_interface::RobotHW {
    * a joint.
    */
   using JointElements = struct JointElements {
-    mutable WheelStatus command;   ///< The command wheel status.
-    mutable WheelStatus feedback;  ///< The feedback wheel status.
+    mutable WheelStatus command{};   ///< The command wheel status.
+    mutable WheelStatus feedback{};  ///< The feedback wheel status.
   };
 
   /**

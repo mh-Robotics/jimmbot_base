@@ -51,7 +51,7 @@ constexpr auto kDefaultControlFrequency{10.0};
 
 // Maximum wheel speed constants
 constexpr auto kMaxWheelSpeedKey{"max_wheel_speed"};
-constexpr auto kDefaultMaxAllowedWheelSpeed{2.5};
+constexpr auto kDefaultMaxAllowedWheelSpeed{4.0};
 
 // Command topic constants
 constexpr auto kCommandFrameIdKey{"command_frame_id"};

@@ -141,8 +141,8 @@ void TeleopTwistJoyExtended::Impl::SendExtnDataMsg(
       ReturnSwitchStateFromPush(joy_msg->buttons[inverse_movement] != 0));
   extn_data_msg.extn_data.left_light_bulb =
       static_cast<uint8_t>(joy_msg->axes[left_light_bulb] == -1 ? true : false);
-  extn_data_msg.extn_data.right_light_bulb =
-      static_cast<uint8_t>(joy_msg->axes[right_light_bulb] == -1 ? true : false);
+  extn_data_msg.extn_data.right_light_bulb = static_cast<uint8_t>(
+      joy_msg->axes[right_light_bulb] == -1 ? true : false);
   extn_data_msg.extn_data.horn = joy_msg->buttons[horn];
 
   extn_data_pub.publish(extn_data_msg);
