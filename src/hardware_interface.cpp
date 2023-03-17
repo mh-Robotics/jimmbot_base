@@ -40,7 +40,7 @@
 #include "jimmbot_base/hardware_interface.hpp"  // for JimmBotHardwareInterface
 
 #include <ros/callback_queue.h>  // for ros::CallbackQueue
-#include <ros/console.h>         // for ROS_DEBUG_NAMED
+#include <ros/console.h>         // for ROS_WARN_NAMED
 
 #include <chrono>  // for std::chrono::milliseconds
 #include <thread>  // for std::thread
@@ -155,17 +155,8 @@ void JimmBotHardwareInterface::write(const ros::Time& /*time*/,
     speed_command.Execute();
   }
 
-  // @todo(mhalimi): For debug purposes, printout the status
-  // ROS_WARN_NAMED("back_right_", "C: Command: %d",
-  //                joint_elements_[back_right_.TransmitId()].command.command_id);
-  // ROS_WARN_NAMED("back_right_", "C: Effort: %.2f",
-  //                joint_elements_[back_right_.TransmitId()].command.effort);
-  // ROS_WARN_NAMED("back_right_", "C: Position: %.2f",
-  //                joint_elements_[back_right_.TransmitId()].command.position);
-  // ROS_WARN_NAMED("back_right_", "C: RPM: %d",
-  //                joint_elements_[back_right_.TransmitId()].command.rpm);
-  // ROS_WARN_NAMED("back_right_", "C: Velocity: %.2f",
-  //                joint_elements_[back_right_.TransmitId()].command.velocity);
+  ROS_WARN_NAMED("back_right_", "C: Velocity: %.2f",
+                 joint_elements_[back_right_.TransmitId()].command.velocity);
 
   //@todo(issues/6): Write the angle to AUX kinect
   UpdateSpeedToHardware();
@@ -201,18 +192,17 @@ void JimmBotHardwareInterface::UpdateJointsFromHardware() const {
     joint_elements_[back_right_.TransmitId()].feedback =
         back_right_.GetWheelFeedbackStatus();
 
-    // @todo(mhalimi): For debug purposes, printout the status
-    // ROS_WARN_NAMED(
-    //     "back_right_", "F: Command: %d",
-    //     joint_elements_[back_right_.TransmitId()].feedback.command_id);
-    // ROS_WARN_NAMED("back_right_", "F: Effort: %.2f",
-    //                joint_elements_[back_right_.TransmitId()].feedback.effort);
-    // ROS_WARN_NAMED("back_right_", "F: Position: %.2f",
-    //                joint_elements_[back_right_.TransmitId()].feedback.position);
-    // ROS_WARN_NAMED("back_right_", "F: RPM: %d",
-    //                joint_elements_[back_right_.TransmitId()].feedback.rpm);
-    // ROS_WARN_NAMED("back_right_", "F: Velocity: %.2f",
-    //                joint_elements_[back_right_.TransmitId()].feedback.velocity);
+    ROS_WARN_NAMED(
+        "back_right_", "F: Command: %d",
+        joint_elements_[back_right_.TransmitId()].feedback.command_id);
+    ROS_WARN_NAMED("back_right_", "F: Effort: %.2f",
+                   joint_elements_[back_right_.TransmitId()].feedback.effort);
+    ROS_WARN_NAMED("back_right_", "F: Position: %.2f",
+                   joint_elements_[back_right_.TransmitId()].feedback.position);
+    ROS_WARN_NAMED("back_right_", "F: RPM: %d",
+                   joint_elements_[back_right_.TransmitId()].feedback.rpm);
+    ROS_WARN_NAMED("back_right_", "F: Velocity: %.2f",
+                   joint_elements_[back_right_.TransmitId()].feedback.velocity);
   }
 }
 

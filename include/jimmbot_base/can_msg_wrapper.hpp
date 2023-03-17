@@ -45,6 +45,7 @@
 #include <jimmbot_msgs/CanFrame.h>         // for jimmbot_msg::CanFrame
 #include <jimmbot_msgs/CanFrameStamped.h>  // for jimmbot_msg::CanFrameStamped
 
+#include <mutex>          // for std::mutex
 #include <unordered_map>  // for std::unordered_map
 
 #include "can_packt.h"  // for CanPackt
@@ -181,7 +182,9 @@ class CanMsgWrapper {
  private:
   std::unique_ptr<CanPackt> canpressor_;
   jimmbot_msgs::CanFrame feedback_status_;
+  mutable std::mutex feedback_mutex_;
   WheelStatus command_status_;
+  mutable std::mutex command_mutex_;
 };
 
 class Command {
